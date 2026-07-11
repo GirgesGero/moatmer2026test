@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مؤتمر خلطبيطة بالصلصة 2026</title>
+    <link rel="icon" type="image/png" href="assets/img/logo-favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/welcome.css">
+    <!-- فحص الجلسة لتخطي صفحة الترحيب لو زارها قبل كدا -->
+    <script>
+        if (sessionStorage.getItem('entered') === 'true') {
+            window.location.replace('pages/home.html');
+        }
+    </script>
+</head>
+<body class="welcome-body">
+
+    <!-- خلفية تصميم المؤتمر الفاخرة -->
+    <div class="bg-poster-layer"></div>
+
+    <!-- طبقات الخلفية والفقاعات المتوهجة -->
+    <div class="bg-layer bg-layer-1"></div>
+    <div class="bg-layer bg-layer-2">
+        <div class="floating-circle circle-1"></div>
+        <div class="floating-circle circle-2"></div>
+        <div class="floating-circle circle-3"></div>
+        <div class="floating-circle circle-4"></div>
+    </div>
+    <div class="bg-layer bg-layer-3"></div>
+
+    <!-- شبكة الجزيئات والكونستليشن المتفاعلة -->
+    <canvas id="particles-canvas" class="particles-canvas"></canvas>
+
+    <!-- واجهة الترحيب -->
+    <div class="welcome-page">
+        <!-- اللوجو مع هولوغرام الإضاءة الدوارة -->
+        <div class="welcome-logo-container">
+            <div class="logo-portal-ring ring-outer"></div>
+            <div class="logo-portal-ring ring-inner"></div>
+            <picture>
+                <source srcset="assets/img/logo-hero.webp" type="image/webp">
+                <img src="assets/img/logo-hero.png" alt="لوجو مؤتمر خلطبيطة بالصلصة" class="welcome-logo">
+            </picture>
+            <div class="welcome-logo-glow"></div>
+        </div>
+
+        <!-- ترويسة العنوان والاسم الفاخر -->
+        <div class="welcome-text">
+            <h1 class="welcome-title">خلطبيطة بالصلصة 🍲</h1>
+            <div class="welcome-divider">
+                <span class="divider-dot"></span>
+                <span class="divider-line"></span>
+                <span class="divider-icon"><i class="bi bi-stars"></i></span>
+                <span class="divider-line"></span>
+                <span class="divider-dot"></span>
+            </div>
+            <p class="welcome-subtitle">مؤتمر الشباب 2026 — كنيسة مارمرقس بالمنشية</p>
+        </div>
+
+        <!-- بطاقات إحصائيات المؤتمر (Glassmorphism Hologram) -->
+        <div class="welcome-info-cards">
+            <div class="info-card info-card-cyan">
+                <i class="bi bi-people-fill info-card-icon"></i>
+                <div class="info-card-text">
+                    <span class="info-card-number">98</span>
+                    <span class="info-card-label">مشترك</span>
+                </div>
+            </div>
+            <div class="info-card info-card-gold">
+                <i class="bi bi-bus-front-fill info-card-icon"></i>
+                <div class="info-card-text">
+                    <span class="info-card-number">2</span>
+                    <span class="info-card-label">أتوبيس</span>
+                </div>
+            </div>
+            <div class="info-card info-card-pink">
+                <i class="bi bi-geo-alt-fill info-card-icon"></i>
+                <div class="info-card-text">
+                    <span class="info-card-location">بيت المؤتمر</span>
+                    <span class="info-card-label">العجمي</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- زر الدخول المتوهج التفاعلي -->
+        <button id="start-btn" class="start-journey-btn">
+            <span class="btn-shimmer-sweep"></span>
+            <span class="btn-icon"><i class="bi bi-rocket-takeoff-fill"></i></span>
+            <span class="btn-text">ابدأ الرحلة معنا</span>
+            <span class="btn-arrow"><i class="bi bi-arrow-left"></i></span>
+        </button>
+
+        <!-- تلميح إرشادي ناعم -->
+        <p class="welcome-hint">استكشف برنامج المؤتمر، احجز مقعدك، وتابع الفعاليات لحظة بلحظة</p>
+    </div>
+
+    <!-- نظام الجزيئات الكونستليشن - أداء 60fps -->
+    <script>
+        (function() {
+            var canvas = document.getElementById('particles-canvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var particles = [];
+            var PARTICLE_COUNT = 45;
+
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resize();
+            window.addEventListener('resize', resize);
+
+            function Particle() { this.reset(); }
+            Particle.prototype.reset = function() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.speedY = (Math.random() - 0.5) * 0.3;
+                this.opacity = Math.random() * 0.4 + 0.15;
+                this.hue = [190, 160, 42, 275][Math.floor(Math.random() * 4)];
+                this.pulse = Math.random() * Math.PI * 2;
+                this.pulseSpeed = Math.random() * 0.015 + 0.005;
+            };
+            Particle.prototype.update = function() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.pulse += this.pulseSpeed;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+            };
+            Particle.prototype.draw = function() {
+                var dynamicOpacity = this.opacity * (0.6 + 0.4 * Math.sin(this.pulse));
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'hsla(' + this.hue + ', 85%, 65%, ' + dynamicOpacity + ')';
+                ctx.fill();
+            };
+
+            for (var i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+
+            function drawLines() {
+                for (var i = 0; i < particles.length; i++) {
+                    for (var j = i + 1; j < particles.length; j++) {
+                        var dx = particles[i].x - particles[j].x;
+                        var dy = particles[i].y - particles[j].y;
+                        var dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 130) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = 'rgba(6, 182, 212, ' + (0.07 * (1 - dist / 130)) + ')';
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (var i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+                drawLines();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        })();
+    </script>
+
+    <!-- منطق التوجيه والانتقال الناعم -->
+    <script>
+        (function() {
+            var startBtn = document.getElementById('start-btn');
+            if (!startBtn) return;
+
+            startBtn.addEventListener('click', function() {
+                startBtn.classList.add('loading');
+                sessionStorage.setItem('entered', 'true');
+
+                setTimeout(function() {
+                    document.body.classList.add('page-exit');
+                    setTimeout(function() {
+                        window.location.href = 'pages/home.html';
+                    }, 500);
+                }, 300);
+            });
+        })();
+    </script>
+</body>
+</html>

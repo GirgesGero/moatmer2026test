@@ -1,0 +1,562 @@
+﻿/* ═══════════════════════════════════════════════
+   home.css — أنماط الصفحة الرئيسية
+   مؤتمر الشباب 2026
+═══════════════════════════════════════════════ */
+
+/* ─── متغيرات الدائرة ─── */
+:root {
+    --navbar-h:      56px;
+    --bottom-nav-h:  64px;
+
+    --dial-size:         115vw;
+    --dial-radius:       calc(var(--dial-size) / 2 - 44px);
+    --dial-right-offset: calc(-1 * var(--dial-size) / 2 + 22px);
+
+    --church-gold:          #d4a843;
+    --church-gold-glow:     #f0c75e;
+    --church-gold-dim:      rgba(212,168,67,0.18);
+    --church-blue:          #2563eb;
+    --church-blue-deep:     #1e3a8a;
+    --church-burgundy:      #9f1239;
+    --church-burgundy-deep: #4c0519;
+}
+
+@media (min-width: 480px) {
+    :root {
+        --dial-size:         500px;
+        --dial-radius:       210px;
+        --dial-right-offset: -228px;
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   تخطيط الصفحة — الحاوية الرئيسية
+═══════════════════════════════════════════════ */
+.home-main {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100svh - var(--navbar-h) - var(--bottom-nav-h));
+}
+
+/* ═══════════════════════════════════════════════
+   Hero Strip — شريط أعلى مضغوط
+═══════════════════════════════════════════════ */
+.home-hero-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 1rem;
+    background: linear-gradient(135deg,
+        rgba(14,24,48,0.85) 0%,
+        rgba(6,10,22,0.7) 100%
+    );
+    border-bottom: 1px solid rgba(212,168,67,0.12);
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
+}
+
+.hero-logo-sm {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    object-fit: contain;
+    background: rgba(10,18,38,0.8);
+    border: 1.5px solid rgba(212,168,67,0.3);
+    box-shadow: 0 0 0 2px rgba(212,168,67,0.08), 0 4px 14px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+    animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+    0%, 100% { box-shadow: 0 0 0 2px rgba(212,168,67,0.08), 0 4px 14px rgba(0,0,0,0.4); }
+    50%       { box-shadow: 0 0 0 4px rgba(212,168,67,0.20), 0 4px 20px rgba(212,168,67,0.18); }
+}
+
+.hero-text-wrap { flex: 1; min-width: 0; }
+
+.home-greeting {
+    font-size: clamp(0.85rem, 3.6vw, 1.02rem);
+    font-weight: 800;
+    color: var(--text-main, #f1f5f9);
+    line-height: 1.2;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.home-greeting-sub {
+    font-size: 0.65rem;
+    color: var(--text-secondary, #94a3b8);
+    margin: 1px 0 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════════════════
+   Live Activity Compact — الآن / بعد مضغوط
+═══════════════════════════════════════════════ */
+.live-compact {
+    margin: 0.35rem 0.85rem;
+    background: rgba(10,18,36,0.78);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(16,185,129,0.22);
+    border-radius: 12px;
+    padding: 0.38rem 0.85rem 0.38rem 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+    flex-shrink: 0;
+}
+
+.live-compact::before {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, #10b981 0%, #8b5cf6 100%);
+    border-radius: 0 12px 12px 0;
+}
+
+.lc-section {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.lc-section + .lc-section {
+    border-right: 1px solid rgba(255,255,255,0.07);
+    padding-right: 0.5rem;
+}
+
+.lc-badge {
+    font-size: 0.56rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 5px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.lc-badge.now  { background: rgba(16,185,129,0.18); color: #34d399; animation: pulseNow 2s infinite alternate; }
+.lc-badge.next { background: rgba(139,92,246,0.15);  color: #a78bfa; }
+
+@keyframes pulseNow {
+    0%   { opacity: 0.75; }
+    100% { opacity: 1; box-shadow: 0 0 8px rgba(16,185,129,0.4); }
+}
+
+.lc-title {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--text-main, #f1f5f9);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.lc-time {
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: var(--primary-light, #67e8f9);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════
+   Dial Wrapper — يملأ ما تبقى من الصفحة
+═══════════════════════════════════════════════ */
+.dial-wrapper {
+    flex: 1;
+    min-height: 300px;
+    position: relative;
+    overflow: hidden;
+    z-index: 5;
+    padding: 0;
+}
+
+/* ─── الدائرة الضخمة ─── */
+.dial-outer-ring {
+    position: absolute;
+    width:  var(--dial-size);
+    height: var(--dial-size);
+    border-radius: 50%;
+    right: var(--dial-right-offset);
+    top: 50%;
+    transform: translateY(-50%);
+    touch-action: none;
+    z-index: 5;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.dial-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.dial-wheel {
+    transform-origin: 150px 150px;
+    transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ═══════════════════════════════════════════════
+   Dial Nodes (SVG Groups)
+═══════════════════════════════════════════════ */
+.dial-node {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.svg-sector {
+    transition: fill-opacity 0.3s, stroke-width 0.3s, stroke-opacity 0.3s, filter 0.3s;
+}
+
+/* ألوان التوهج والتأثيرات */
+.sector-cyan    { --glow-color: #0284c7; }
+.sector-teal    { --glow-color: #0d9488; }
+.sector-gold    { --glow-color: #d97706; }
+.sector-orange  { --glow-color: #ea580c; }
+.sector-magenta { --glow-color: #c026d3; }
+.sector-blue    { --glow-color: #2563eb; }
+.sector-pink    { --glow-color: #db2777; }
+.sector-purple  { --glow-color: #7c3aed; }
+
+/* تأثيرات التحويم */
+.dial-node:hover .svg-sector {
+    stroke-opacity: 0.95;
+    stroke-width: 1.6px;
+    filter: drop-shadow(0 0 4px var(--glow-color));
+}
+
+/* القطاع النشط */
+.dial-node.active .svg-sector {
+    stroke-width: 2.2px;
+    stroke-opacity: 1;
+    fill-opacity: 0.3;
+    filter: drop-shadow(0 0 7px var(--glow-color)) url(#svg-glow);
+}
+
+.svg-icon {
+    font-size: 13.5px;
+    pointer-events: none;
+    fill: #ffffff;
+    text-anchor: middle;
+    dominant-baseline: central;
+    transition: font-size 0.3s ease, filter 0.3s ease;
+}
+
+.dial-node.active .svg-icon {
+    font-size: 16.5px;
+    filter: drop-shadow(0 0 4px #ffffff);
+}
+
+.svg-label {
+    font-family: 'Cairo', sans-serif;
+    font-size: 7px;
+    font-weight: 800;
+    fill: rgba(255, 255, 255, 0.7);
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+    transition: fill 0.3s ease, font-weight 0.3s ease;
+}
+
+.dial-node.active .svg-label {
+    fill: #ffffff;
+    font-weight: 900;
+}
+
+/* ═══════════════════════════════════════════════
+   Hub Inside SVG (شعار المؤتمر الدائري)
+═══════════════════════════════════════════════ */
+.dial-hub {
+    position: absolute;
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 6;
+    pointer-events: none;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+.dial-hub-logo-wrap {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: #0a1220;
+    display: flex; align-items: center; justify-content: center;
+    border: 1.5px solid var(--church-gold);
+    box-shadow: 0 0 12px rgba(212,168,67,0.35);
+}
+
+.dial-hub-logo { width: 100%; height: 100%; object-fit: contain; }
+
+/* ═══════════════════════════════════════════════
+   Dial Active Badge — بادج القسم النشط
+═══════════════════════════════════════════════ */
+.dial-active-badge {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 25;
+    width: 155px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+
+    background: linear-gradient(145deg,
+        rgba(12,22,44,0.96) 0%,
+        rgba(6,10,22,0.99)  100%
+    );
+    border: 1.5px solid rgba(212,168,67,0.4);
+    border-radius: 20px;
+    padding: 1rem 0.85rem 0.9rem;
+    text-align: center;
+
+    box-shadow:
+        0 8px 30px rgba(0,0,0,0.65),
+        0 0 22px rgba(212,168,67,0.12),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+
+    transition:
+        border-color 0.3s ease,
+        box-shadow   0.3s ease,
+        transform    0.3s ease;
+}
+
+.dial-active-badge:hover {
+    border-color: rgba(212,168,67,0.68);
+    box-shadow:
+        0 12px 38px rgba(0,0,0,0.7),
+        0 0 32px rgba(212,168,67,0.22),
+        inset 0 1px 0 rgba(255,255,255,0.07);
+    transform: translateY(calc(-50% - 3px));
+}
+
+.dial-active-badge:active {
+    transform: translateY(-50%) scale(0.97);
+}
+
+@keyframes badgePop {
+    0%   { opacity: 0.6; transform: translateY(calc(-50% + 10px)); }
+    100% { opacity: 1;   transform: translateY(-50%); }
+}
+
+.dial-active-badge.changing {
+    animation: badgePop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─── مؤشر الذروة ─── */
+.dab-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.dab-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--church-gold-glow);
+    box-shadow: 0 0 8px rgba(212,168,67,0.9);
+    animation: dotPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { transform: scale(1);   opacity: 1; }
+    50%       { transform: scale(1.55); opacity: 0.5; }
+}
+
+.dab-vline {
+    width: 1.5px; height: 12px;
+    background: linear-gradient(to bottom, rgba(212,168,67,0.65), transparent);
+}
+
+/* ─── أيقونة القسم ─── */
+.dab-icon {
+    font-size: 2.2rem;
+    display: block;
+    margin-bottom: 5px;
+    line-height: 1;
+    filter: drop-shadow(0 0 8px rgba(212,168,67,0.45));
+    animation: iconFloat 3s ease-in-out infinite;
+}
+
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%       { transform: translateY(-4px) scale(1.06); }
+}
+
+/* ─── اسم القسم ─── */
+.dab-name {
+    font-size: 0.88rem;
+    font-weight: 900;
+    color: var(--church-gold-glow);
+    line-height: 1.2;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    margin-bottom: 4px;
+}
+
+/* ─── وصف مختصر ─── */
+.dab-desc {
+    font-size: 0.63rem;
+    color: rgba(175,190,215,0.68);
+    line-height: 1.4;
+    margin-bottom: 9px;
+    padding: 0 2px;
+}
+
+/* ─── تلميح الدخول ─── */
+.dab-enter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    color: rgba(212,168,67,0.62);
+    letter-spacing: 0.02em;
+    transition: color 0.22s, gap 0.22s;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    padding-top: 8px;
+    width: 100%;
+}
+
+.dial-active-badge:hover .dab-enter {
+    color: var(--church-gold-glow);
+    gap: 7px;
+}
+
+.dab-enter i { font-size: 0.78rem; }
+
+/* ─── السهم الواصل من البادج إلى الدائرة ─── */
+.dab-connector {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    pointer-events: none;
+}
+
+.dab-h-line {
+    width: 20px;
+    height: 1.5px;
+    background: linear-gradient(to right, rgba(212,168,67,0.5), rgba(212,168,67,0.1));
+}
+
+.dab-h-arrow {
+    color: rgba(212,168,67,0.55);
+    font-size: 0.9rem;
+    line-height: 1;
+    animation: arrowPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes arrowPulse {
+    0%, 100% { transform: translateX(0);   opacity: 0.5; }
+    50%       { transform: translateX(4px); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════
+   Nav Buttons
+═══════════════════════════════════════════════ */
+.dial-nav-btn {
+    position: absolute;
+    z-index: 30;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: rgba(10,18,36,0.88);
+    border: 1.5px solid rgba(212,168,67,0.35);
+    color: var(--church-gold-glow);
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    backdrop-filter: blur(6px);
+}
+
+.dial-nav-btn:hover {
+    background: rgba(212,168,67,0.2);
+    border-color: var(--church-gold);
+    transform: scale(1.12);
+    box-shadow: 0 0 14px rgba(212,168,67,0.4);
+}
+
+/* أعلى وأسفل للتنقل عمودي */
+.dial-nav-up   { top: 1rem;    left: 50%; transform: translateX(-50%); }
+.dial-nav-down { bottom: 1rem; left: 50%; transform: translateX(-50%); }
+
+.dial-nav-up:hover   { transform: translateX(-50%) scale(1.12); }
+.dial-nav-down:hover { transform: translateX(-50%) scale(1.12); }
+
+/* ═══════════════════════════════════════════════
+   Dial Footer — Dots
+═══════════════════════════════════════════════ */
+.dial-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.2rem 0 0.35rem;
+    flex-shrink: 0;
+}
+
+.dial-dots { display: flex; gap: 5px; align-items: center; }
+
+.dial-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.18);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.dial-dot.active {
+    background: var(--church-gold-glow);
+    transform: scale(1.6);
+    box-shadow: 0 0 7px var(--church-gold-glow);
+}
+
+.dial-swipe-hint {
+    font-size: 0.58rem;
+    color: rgba(255,255,255,0.28);
+    display: flex; align-items: center; gap: 3px;
+    pointer-events: none;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.6s;
+}
+
+.dial-swipe-hint.visible { opacity: 1; }
+
+/* ═══════════════════════════════════════════════
+   Page Transition
+═══════════════════════════════════════════════ */
+body.page-transition-out {
+    animation: pageOut 0.22s ease forwards;
+}
+
+@keyframes pageOut {
+    to { opacity: 0; transform: scale(0.98); }
+}

@@ -1,0 +1,482 @@
+/* =====================================================
+   core.js — مؤتمر الشباب 2.0
+   الدوال المشتركة لجميع الصفحات
+   ===================================================== */
+
+'use strict';
+
+// تحميل ملف DataService ديناميكياً - يتم حقنه في <head> قبل core.js
+(function() {
+    if (window.DataService) return;
+    const prefix = location.pathname.includes('/pages/') ? '../' : '';
+    var s = document.createElement('script');
+    s.src = prefix + 'assets/js/data-service.js';
+    s.async = false;
+    s.defer = false;
+    document.head ? document.head.appendChild(s) : document.write('<script src="' + s.src + '"></script>');
+})();
+
+/* ─── 1. حقن Partials ─────────────────────────────── */
+async function loadPartials() {
+    const prefix = location.pathname.includes('/pages/') ? '../' : '';
+    const slots = [
+        { id: 'app-navbar-slot',    file: prefix + 'partials/navbar.html' },
+        { id: 'app-bottomnav-slot', file: prefix + 'partials/bottom-nav.html' }
+    ];
+
+    await Promise.all(slots.map(async ({ id, file }) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.children.length > 0) return;
+        try {
+            const res = await fetch(file);
+            if (!res.ok) throw new Error(res.status);
+            el.innerHTML = await res.text();
+        } catch (e) {
+            console.warn('loadPartials: فشل تحميل', file, e);
+        }
+    }));
+
+    // تظليل التبويب النشط حسب اسم الصفحة الحالية
+    _highlightActiveTab();
+    _setupBackButton();
+    _setupFloatingOrb();
+    _setupDrawerNavigation();
+}
+
+function _setupDrawerNavigation() {
+    const menuBtn = document.getElementById('nav-menu-btn');
+    const closeBtn = document.getElementById('nav-overlay-close');
+    const overlay = document.getElementById('nav-menu-overlay');
+
+    if (!menuBtn || !overlay) return;
+
+    function openOverlay() {
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeOverlay() {
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    menuBtn.addEventListener('click', openOverlay);
+    if (closeBtn) closeBtn.addEventListener('click', closeOverlay);
+
+    overlay.querySelectorAll('.menu-item-card').forEach(item => {
+        item.addEventListener('click', closeOverlay);
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) {
+            closeOverlay();
+        }
+    });
+}
+
+function _setupBackButton() {
+    const path = location.pathname;
+    const page = path.split('/').pop() || 'home.html';
+    if (page !== 'home.html' && page !== 'index.html') {
+        const backBtn = document.getElementById('nav-back-btn');
+        if (backBtn) {
+            backBtn.style.display = 'flex';
+            backBtn.href = 'home.html';
+        }
+    }
+}
+
+function _setupFloatingOrb() {
+    const path = location.pathname;
+    const page = path.split('/').pop() || 'home.html';
+    if (page === 'index.html' || page === 'manage-passengers.html') return;
+    if (document.getElementById('floating-orb-container')) return;
+
+    const orb = document.createElement('div');
+    orb.id = 'floating-orb-container';
+    orb.className = 'floating-orb-container';
+    orb.innerHTML = `
+        <button class="floating-orb-trigger" id="floating-orb-trigger" aria-label="مساعد سري">
+            <i class="bi bi-lightning-charge-fill"></i>
+        </button>
+        <div class="floating-orb-menu">
+            <a href="program.html" class="floating-orb-item" data-title="البرنامج" style="border-color:#a78bfa;color:#a78bfa;"><i class="bi bi-calendar3"></i></a>
+            <a href="prayer.html" class="floating-orb-item" data-title="الصلوات" style="border-color:#f59e0b;color:#f59e0b;"><i class="bi bi-book-fill"></i></a>
+            <a href="buses.html" class="floating-orb-item" data-title="الأتوبيس" style="border-color:#06b6d4;color:#06b6d4;"><i class="bi bi-bus-front-fill"></i></a>
+            <a href="games.html" class="floating-orb-item" data-title="الألعاب" style="border-color:#fb7185;color:#fb7185;"><i class="bi bi-controller"></i></a>
+        </div>
+    `;
+
+    document.body.appendChild(orb);
+
+    const trigger = document.getElementById('floating-orb-trigger');
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        orb.classList.toggle('active');
+        trigger.classList.toggle('active');
+    });
+
+    document.addEventListener('click', () => {
+        orb.classList.remove('active');
+        trigger.classList.remove('active');
+    });
+}
+
+function _highlightActiveTab() {
+    const path = location.pathname;
+    const map = {
+        'home.html':             'home',
+        'program.html':          'program',
+        'buses.html':            'buses',
+        'prayer.html':           'prayer',
+        'prayer-morning.html':   'prayer',
+        'prayer-night.html':     'prayer',
+        'games.html':            'more',
+        'lectures.html':         'more',
+        'workshops.html':        'more',
+        'hymns.html':            'more',
+        'accommodation.html':    'more',
+    };
+
+    const page = path.split('/').pop() || 'home.html';
+    const active = map[page];
+    if (!active) return;
+
+    document.querySelectorAll('.bottom-nav-item[data-tab]').forEach(el => {
+        el.classList.toggle('active', el.dataset.tab === active);
+    });
+}
+
+/* ─── 2. تطبيع النصوص العربية ────────────────────── */
+function normalizeArabic(text) {
+    if (!text) return '';
+    return text
+        .replace(/أ|إ|آ/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toLowerCase();
+}
+
+/* ─── 3. مكوّن بحث قابل لإعادة الاستخدام ─────────── */
+function createSearchWidget(config) {
+    /*
+     * config = {
+     *   inputEl:    HTMLInputElement,
+     *   data:       Array,
+     *   matchField: string | string[],   // حقل/حقول للبحث
+     *   onResult:   function(results),   // callback بالنتائج
+     *   onEmpty:    function(),           // callback عند لا نتيجة
+     * }
+     */
+    if (!config || !config.inputEl || !config.data) return;
+
+    const { inputEl, data, onResult, onEmpty } = config;
+    const fields = Array.isArray(config.matchField) ? config.matchField : [config.matchField];
+
+    inputEl.addEventListener('input', function () {
+        const q = normalizeArabic(this.value);
+        if (!q) { if (onResult) onResult(data); return; }
+
+        const results = data.filter(item =>
+            fields.some(f => normalizeArabic(String(item[f] ?? '')).includes(q))
+        );
+
+        if (results.length === 0 && onEmpty) onEmpty();
+        else if (onResult) onResult(results);
+    });
+}
+
+/* ─── 4. التحكم بحجم الخط ────────────────────────── */
+const FontSizeControl = {
+    STORAGE_KEY: 'yc2_reading_font_scale',
+    STEPS:  [0.85, 1.0, 1.15, 1.3],
+    _idx:   1,
+
+    init(targetSelector = 'body') {
+        this._target = document.querySelector(targetSelector) || document.body;
+        const saved = parseFloat(localStorage.getItem(this.STORAGE_KEY));
+        if (!isNaN(saved)) {
+            const idx = this.STEPS.indexOf(saved);
+            if (idx !== -1) this._idx = idx;
+        }
+        this._apply();
+    },
+
+    _apply() {
+        const scale = this.STEPS[this._idx];
+        this._target.style.setProperty('--reading-scale', scale);
+        localStorage.setItem(this.STORAGE_KEY, scale);
+    },
+
+    increase() {
+        if (this._idx < this.STEPS.length - 1) { this._idx++; this._apply(); }
+    },
+
+    decrease() {
+        if (this._idx > 0) { this._idx--; this._apply(); }
+    },
+
+    current() { return this.STEPS[this._idx]; }
+};
+
+/* ─── 5. وضع القراءة المريحة ─────────────────────── */
+const ReadingModeToggle = {
+    STORAGE_KEY: 'yc2_reading_mode_enabled',
+
+    init() {
+        const enabled = localStorage.getItem(this.STORAGE_KEY) === 'true';
+        document.body.classList.toggle('reading-mode', enabled);
+        this._updateBtn(enabled);
+    },
+
+    toggle() {
+        const enabled = document.body.classList.toggle('reading-mode');
+        localStorage.setItem(this.STORAGE_KEY, enabled);
+        this._updateBtn(enabled);
+        return enabled;
+    },
+
+    _updateBtn(enabled) {
+        const btns = document.querySelectorAll('[data-reading-toggle]');
+        btns.forEach(btn => {
+            btn.classList.toggle('active', enabled);
+            btn.setAttribute('aria-pressed', enabled);
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.className = enabled ? 'bi bi-moon-stars-fill' : 'bi bi-moon-stars';
+            }
+        });
+    }
+};
+
+/* ─── 6. إدارة المفضلة ───────────────────────────── */
+const FavoritesManager = {
+    STORAGE_KEY: 'yc2_favorite_hymns',
+
+    _load() {
+        try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]'); }
+        catch { return []; }
+    },
+
+    _save(list) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(list));
+    },
+
+    isFavorite(id) { return this._load().includes(id); },
+
+    toggle(id) {
+        let list = this._load();
+        if (list.includes(id)) list = list.filter(x => x !== id);
+        else list.push(id);
+        this._save(list);
+        return list.includes(id);
+    },
+
+    getAll() { return this._load(); }
+};
+
+/* ─── 7. حفظ موضع القراءة ────────────────────────── */
+const ScrollPositionSaver = {
+    _KEY: (pageId) => `yc2_scroll_pos_${pageId}`,
+    _timer: null,
+
+    save(pageId) {
+        clearTimeout(this._timer);
+        this._timer = setTimeout(() => {
+            localStorage.setItem(this._KEY(pageId), window.scrollY);
+        }, 500);
+    },
+
+    restore(pageId, options = {}) {
+        const pos = parseInt(localStorage.getItem(this._KEY(pageId)));
+        if (!pos || pos < 200) return; // لا قيمة أو في الأعلى أصلاً
+
+        const { prompt = true, threshold = 200 } = options;
+        if (!prompt) { window.scrollTo({ top: pos, behavior: 'smooth' }); return; }
+
+        // إذا كانت هناك قيمة محفوظة نسأل المستخدم
+        const confirm = window.confirm(`تكمل من حيث وقفت؟ (${Math.round(pos / document.body.scrollHeight * 100)}% من الصفحة)`);
+        if (confirm) window.scrollTo({ top: pos, behavior: 'smooth' });
+    },
+
+    startAutoSave(pageId) {
+        window.addEventListener('scroll', () => this.save(pageId), { passive: true });
+    }
+};
+
+/* ─── 8. تمييز النشاط الحالي في الجدول ──────────── */
+function highlightCurrentActivity(programArray, options = {}) {
+    /*
+     * programArray: مصفوفة أنشطة كل منها { time, endTime, id, ... }
+     * time/endTime: "HH:MM" بتوقيت 24 ساعة
+     */
+    if (!Array.isArray(programArray)) return null;
+
+    const now   = new Date();
+    const toMin = (str) => {
+        if (!str) return null;
+        const [h, m] = str.split(':').map(Number);
+        return h * 60 + m;
+    };
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    let current = null;
+
+    programArray.forEach(activity => {
+        const start = toMin(activity.time);
+        const end   = toMin(activity.endTime);
+        if (start === null) return;
+
+        const isNow = end !== null
+            ? (nowMin >= start && nowMin < end)
+            : (nowMin >= start && nowMin < start + 60); // افتراضي ساعة
+
+        const el = document.getElementById(activity.id);
+        if (el) {
+            el.classList.toggle('activity-now', isNow);
+            el.classList.toggle('activity-past', !isNow && nowMin >= (end ?? start + 60));
+        }
+
+        if (isNow) current = activity;
+    });
+
+    // تمرير للنشاط الحالي
+    if (current) {
+        const el = document.getElementById(current.id);
+        if (el) {
+            setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+        }
+    }
+
+    return current;
+}
+
+/* ─── Exports (للاستخدام في الصفحات) ──────────────── */
+window.YC = {
+    loadPartials,
+    normalizeArabic,
+    createSearchWidget,
+    FontSizeControl,
+    ReadingModeToggle,
+    FavoritesManager,
+    ScrollPositionSaver,
+    highlightCurrentActivity,
+    loadConferenceData,
+    renderEmptyState,
+    searchParticipant
+};
+
+/* ─── 5. نظام تحميل وإدارة بيانات المؤتمر الموحّد ──── */
+let cachedConferenceDataPromise = null;
+
+function loadLoadingOverlay() {
+    if (document.getElementById('app-loading-overlay')) return;
+    const overlay = document.createElement('div');
+    overlay.id = 'app-loading-overlay';
+    overlay.style = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.85);z-index:9999;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(8px);transition:opacity 0.3s;';
+    overlay.innerHTML = `
+        <div style="text-align:center;">
+            <div class="spinner-border" style="color:#06b6d4;width:3rem;height:3rem;" role="status"></div>
+            <div style="margin-top:15px;color:#f8fafc;font-weight:600;font-size:0.95rem;">جاري تحميل بيانات المؤتمر...</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function hideLoadingOverlay() {
+    const overlay = document.getElementById('app-loading-overlay');
+    if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 300);
+    }
+}
+
+function showConferenceErrorState(message) {
+    hideLoadingOverlay();
+    const errorDiv = document.createElement('div');
+    errorDiv.style = 'position:fixed;top:20px;left:20px;right:20px;background:rgba(239,68,68,0.95);color:#fff;padding:16px;border-radius:12px;z-index:10000;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.45);backdrop-filter:blur(4px);direction:rtl;';
+    errorDiv.innerHTML = `
+        <div style="font-weight:700;margin-bottom:6px;font-size:1.05rem;">⚠️ تعذر تحميل بيانات المؤتمر</div>
+        <div style="font-size:0.85rem;opacity:0.9;">${message}</div>
+        <button onclick="location.reload()" style="margin-top:12px;background:#fff;color:#ef4444;border:none;padding:6px 20px;border-radius:8px;font-weight:700;font-size:0.8rem;cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,0.15);">إعادة المحاولة</button>
+    `;
+    document.body.appendChild(errorDiv);
+}
+
+function loadConferenceData() {
+    if (window.DataService) {
+        loadLoadingOverlay();
+        return window.DataService.loadConference()
+            .then(data => {
+                hideLoadingOverlay();
+                return data;
+            })
+            .catch(err => {
+                showConferenceErrorState(err.message || 'خطأ في الشبكة أو ملف تالف');
+                throw err;
+            });
+    }
+}
+
+function renderEmptyState(container, message = "لا توجد بيانات بعد") {
+    const el = typeof container === 'string' ? document.querySelector(container) : container;
+    if (!el) return;
+    el.innerHTML = `
+        <div style="text-align:center;padding:50px 20px;color:#94a3b8;font-size:0.9rem;">
+            <i class="bi bi-inbox" style="font-size:2.5rem;display:block;margin-bottom:12px;color:rgba(255,255,255,0.12)"></i>
+            ${message}
+        </div>
+    `;
+}
+
+function searchParticipant(query) {
+    if (!window.conferenceData || !window.conferenceData.participants) return [];
+    const normalizedQuery = YC.normalizeArabic(query.trim());
+    if (!normalizedQuery) return [];
+
+    return window.conferenceData.participants.filter(p => 
+        YC.normalizeArabic(p.name).includes(normalizedQuery)
+    ).map(p => {
+        const room = window.conferenceData.rooms.find(r => r.id === p.roomId);
+        const bus = window.conferenceData.buses.find(b => b.busNumber === p.busNumber);
+        const group = window.conferenceData.groups.find(g => g.id === p.groupId);
+
+        return {
+            id: p.id,
+            name: p.name,
+            groupName: group ? group.name : '—',
+            roomName: room ? room.name : '—',
+            floor: room ? room.floor : null,
+            bedNumber: p.bedNumber,
+            busNumber: p.busNumber,
+            seatNumber: p.seatNumber,
+            supervisorName: bus ? bus.supervisorName : '—'
+        };
+    });
+}
+
+// ─── ربط انتقالات الصفحات التلقائي ───
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('page-transition-in');
+    setTimeout(() => {
+        document.body.classList.remove('page-transition-in');
+    }, 300);
+
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[href]');
+        if (!link || link.target === '_blank') return;
+        
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('tel:') || href.startsWith('mailto:')) return;
+        
+        // منع السلوك الافتراضي والانتقال بعد نهاية الأنيميشن
+        e.preventDefault();
+        document.body.classList.add('page-transition-out');
+        setTimeout(() => {
+            window.location.href = href;
+        }, 200);
+    });
+});

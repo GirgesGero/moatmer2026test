@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="description" content="التسكين والغرف — مؤتمر الشباب 2026">
+    <title>التسكين — مؤتمر الشباب</title>
+    <link rel="icon" type="image/png" href="../assets/img/logo-favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <style>
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+            position: sticky;
+            top: 56px; z-index: 100;
+            background: rgba(7,13,25,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .filter-bar::-webkit-scrollbar { display: none; }
+
+        .filter-chip {
+            flex-shrink: 0;
+            padding: .4rem 1rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: .8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .filter-chip.active { background: rgba(251,191,36,.1); border-color: rgba(251,191,36,.3); color: #fbbf24; }
+        .filter-chip:hover  { border-color: rgba(251,191,36,.3); color: #fbbf24; }
+
+        .search-bar {
+            padding: 0.65rem 1rem;
+            position: sticky;
+            top: calc(56px + 50px); z-index: 99;
+            background: rgba(7,13,25,0.9);
+        }
+        .search-input {
+            width: 100%;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            color: var(--text-main);
+            padding: .6rem 1rem .6rem 2.5rem;
+            font-family: inherit;
+            font-size: .9rem;
+            outline: none;
+            transition: border-color .2s;
+            direction: rtl;
+        }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus { border-color: var(--primary-border); }
+        .search-wrap { position: relative; }
+        .search-icon { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: .9rem; pointer-events: none; }
+
+        /* Room cards */
+        .rooms-list { padding: .75rem; }
+
+        .room-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            margin-bottom: .7rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform .18s, border-color .18s;
+        }
+        .room-card:hover { transform: translateX(-3px); border-color: rgba(251,191,36,.3); }
+
+        .room-header {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .9rem 1rem;
+        }
+
+        .room-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            background: rgba(251,191,36,.12);
+            color: #fbbf24;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .room-icon.boys   { background: rgba(6,182,212,.12); color: var(--primary-light); }
+        .room-icon.girls  { background: rgba(244,63,94,.12); color: #fb7185; }
+
+        .room-name { font-weight: 700; font-size: .9rem; color: var(--text-main); flex: 1; }
+        .room-count { font-size: .75rem; color: var(--text-muted); }
+
+        .room-body { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+        .room-body.open { max-height: 600px; }
+
+        .room-person-list {
+            padding: .25rem 1rem .9rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+        }
+        .person-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            background: rgba(148,163,184,.08);
+            border-radius: 10px;
+            padding: .2rem .65rem;
+            font-size: .8rem;
+            color: var(--text-secondary);
+        }
+        .person-tag i { font-size: .75rem; color: var(--text-muted); }
+
+        .gender-badge {
+            font-size: .62rem;
+            font-weight: 700;
+            padding: .12rem .5rem;
+            border-radius: 6px;
+            margin-right: .25rem;
+        }
+        .badge-boys  { background: rgba(6,182,212,.15); color: var(--primary-light); }
+        .badge-girls { background: rgba(244,63,94,.15); color: #fb7185; }
+    </style>
+</head>
+<body>
+    <div class="bg-layer bg-layer-ambient"></div>
+    <div id="app-navbar-slot"></div>
+
+    <header style="padding:1.25rem 1rem .5rem;">
+        <div class="page-header-title">🏠 التسكين</div>
+        <div class="page-header-sub">الغرف والأسرّة — ابحث عن اسمك</div>
+    </header>
+
+    <!-- Filter bar -->
+    <div class="filter-bar" role="toolbar">
+        <button class="filter-chip active" data-gender="all">كل الغرف</button>
+        <button class="filter-chip" data-gender="boys">الدور الأول (ولاد)</button>
+        <button class="filter-chip" data-gender="girls">الدور الثاني (بنات)</button>
+    </div>
+
+    <!-- Hidden search state + Active search badge -->
+    <input type="hidden" id="accomm-search">
+    <div id="accomm-active-search-wrap" style="display: none; padding: 0.25rem 1rem 0.5rem;"></div>
+
+    <!-- Rooms list -->
+    <div class="rooms-list" id="rooms-list">
+        <div class="empty-state">
+            <i class="bi bi-house-door"></i>
+            <p>بيانات التسكين هتتضاف قريباً من فريق المؤتمر<br>
+            ابعت للمسؤول عشان يضيف الغرف والأسماء</p>
+        </div>
+    </div>
+
+    <!-- Search Popup Overlay (v2.3) -->
+    <div class="search-overlay" id="accomm-search-overlay" style="display: none;">
+        <!-- 1. صندوق مدخلات البحث -->
+        <div class="search-box" id="accomm-search-box">
+            <div class="search-box-title"><i class="bi bi-search me-1" style="color:var(--primary-light)"></i> ابحث عن غرفتك</div>
+            <p style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:1.25rem;">ادخل اسمك أو رقم الغرفة لمعرفة مكان تسكينك وسريرك فوراً</p>
+            <div class="search-wrap mb-3">
+                <i class="bi bi-person search-icon"></i>
+                <input type="text" id="accomm-popup-search-input" class="search-input" placeholder="اكتب الاسم أو رقم الغرفة..." autocomplete="off">
+            </div>
+            <div style="display:flex; gap:0.5rem; justify-content:center;">
+                <button class="btn-primary-app" id="accomm-popup-search-btn" style="padding:0.5rem 1.25rem; font-size:0.85rem;"><i class="bi bi-search me-1"></i> ابحث</button>
+                <button class="btn-primary-app" id="accomm-popup-close-btn" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); box-shadow:none; padding:0.5rem 1.25rem; font-size:0.85rem; color:var(--text-secondary);">إغلاق</button>
+            </div>
+        </div>
+
+        <!-- 2. صندوق ترحيب النجاح (مثل الأتوبيس) -->
+        <div class="search-box" id="accomm-success-box" style="display: none;">
+            <div style="font-size: 3rem; margin-bottom: 0.5rem;">🎉</div>
+            <div class="search-box-title" id="accomm-success-welcome">أهلاً بك!</div>
+            <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:1.5rem; line-height: 1.6;" id="accomm-success-desc">
+                تم تسكينك في الدور الأول (ولاد)<br>
+                رقم غرفتك هي: <strong>105</strong>
+            </p>
+            <button class="btn-primary-app" id="accomm-success-show-btn" style="width:100%; justify-content:center;"><i class="bi bi-geo-alt-fill me-1"></i> وريني غرفتي</button>
+        </div>
+    </div>
+
+    <!-- Room Details Modal (v2.3 - Circular) -->
+    <div class="modal fade circular-modal" id="roomDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="room-modal-title">تفاصيل الغرفة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="room-modal-beds-grid" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-bottomnav-slot"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/core.js"></script>
+    <script src="../assets/js/accommodation.js"></script>
+    <script>
+        YC.loadPartials().then(() => {
+            const container = document.getElementById('navbar-actions-container');
+            if (container) {
+                container.innerHTML = `
+                    <button id="accomm-nav-search-btn" class="navbar-action animate__animated animate__fadeIn" title="بحث">
+                        <i class="bi bi-search"></i>
+                    </button>
+                `;
+                
+                // ربط زر البحث العلوي لفتح بوب أب البحث
+                document.getElementById('accomm-nav-search-btn')?.addEventListener('click', () => {
+                    const overlay = document.getElementById('accomm-search-overlay');
+                    const searchBox = document.getElementById('accomm-search-box');
+                    const successBox = document.getElementById('accomm-success-box');
+                    const popupInput = document.getElementById('accomm-popup-search-input');
+                    
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                        if (searchBox) searchBox.style.display = 'block';
+                        if (successBox) successBox.style.display = 'none';
+                        setTimeout(() => {
+                            if (popupInput) {
+                                popupInput.value = document.getElementById('accomm-search')?.value || '';
+                                popupInput.focus();
+                                popupInput.select();
+                            }
+                        }, 300);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

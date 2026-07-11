@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="description" content="ترانيم مؤتمر الشباب 2026">
+    <title>الترانيم — مؤتمر الشباب</title>
+    <link rel="icon" type="image/png" href="../assets/img/logo-favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <style>
+        body.reading-mode { background: #0a0e17; }
+        body.reading-mode .hymn-card { background: rgba(5,8,16,0.95); border-color: rgba(255,255,255,0.06); }
+
+        .day-tabs { display:flex; gap:.5rem; padding:.75rem 1rem; overflow-x:auto; scrollbar-width:none; position:sticky; top:56px; z-index:100; background:rgba(7,13,25,0.95); backdrop-filter:blur(12px); border-bottom:1px solid var(--border-subtle); }
+        .day-tabs::-webkit-scrollbar { display:none; }
+        .day-tab { flex-shrink:0; padding:.5rem 1.2rem; border-radius:20px; border:1px solid var(--border-light); background:transparent; color:var(--text-muted); font-family:inherit; font-size:.85rem; font-weight:600; cursor:pointer; transition:all .2s; white-space:nowrap; }
+        .day-tab:hover { border-color:var(--primary-border); color:var(--primary-light); }
+        .day-tab.active { background:var(--primary-subtle); border-color:var(--primary-border); color:var(--primary-light); }
+        .day-panel { display:none; padding:1rem; }
+        .day-panel.active { display:block; }
+
+        .hymn-card { background:var(--glass-bg); border:1px solid var(--border-light); border-radius:18px; margin-bottom:.75rem; overflow:hidden; }
+        .hymn-header { display:flex; align-items:center; gap:.75rem; padding:1rem 1.25rem; cursor:pointer; }
+        .hymn-icon { width:40px; height:40px; border-radius:12px; background:rgba(99,102,241,0.15); color:#818cf8; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+        .hymn-title { flex:1; font-weight:700; font-size:.95rem; color:var(--text-main); }
+        .hymn-fav-btn { background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--text-muted); padding:.25rem; transition:color .2s, transform .2s; }
+        .hymn-fav-btn.active { color:#f43f5e; transform:scale(1.15); }
+        .hymn-toggle { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:.9rem; padding:.25rem; transition:transform .3s; }
+        .hymn-toggle.open { transform:rotate(180deg); }
+        .hymn-lyrics { max-height:0; overflow:hidden; transition:max-height .4s ease; }
+        .hymn-lyrics.open { max-height:2000px; }
+        .hymn-lyrics-inner { padding:.25rem 1.25rem 1.25rem; color:var(--text-secondary); font-size:calc(.9rem * var(--reading-scale,1)); line-height:2; white-space:pre-wrap; direction:rtl; }
+        .band-chords { font-family:monospace; background:rgba(6,182,212,0.08); border:1px solid var(--primary-border); border-radius:10px; padding:.5rem .85rem; font-size:.8rem; color:var(--primary-light); margin-top:.5rem; }
+
+        .reading-controls { display:flex; align-items:center; gap:.5rem; padding:.5rem 1rem; }
+        .ctrl-btn { background:var(--glass-bg); border:1px solid var(--border-light); border-radius:10px; color:var(--text-secondary); font-size:.8rem; padding:.35rem .75rem; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:.3rem; font-family:inherit; }
+        .ctrl-btn:hover { border-color:var(--primary-border); color:var(--primary-light); }
+        .ctrl-btn.active { background:var(--primary-subtle); border-color:var(--primary-border); color:var(--primary-light); }
+    </style>
+</head>
+<body>
+    <div class="bg-layer bg-layer-ambient"></div>
+    <div id="app-navbar-slot"></div>
+
+    <header style="padding:1.25rem 1rem .5rem">
+        <div class="page-header-title">🎵 الترانيم</div>
+        <div class="page-header-sub">ترانيم المؤتمر وحلقة الصلاة والباند</div>
+    </header>
+
+    <div class="reading-controls">
+        <button class="ctrl-btn" id="font-dec" title="تصغير الخط"><i class="bi bi-dash"></i>خط</button>
+        <button class="ctrl-btn" id="font-inc" title="تكبير الخط"><i class="bi bi-plus"></i>خط</button>
+        <button class="ctrl-btn" id="reading-toggle" data-reading-toggle aria-pressed="false"><i class="bi bi-moon-stars"></i>وضع القراءة</button>
+    </div>
+
+    <div class="day-tabs" role="tablist">
+        <button class="day-tab active" data-tab="conference">ترانيم المؤتمر</button>
+        <button class="day-tab" data-tab="prayer">حلقة الصلاة</button>
+        <button class="day-tab" data-tab="band">فريق الباند</button>
+        <button class="day-tab" data-tab="favorites">⭐ المفضلة</button>
+    </div>
+
+    <main id="hymns-main">
+        <div class="day-panel active" id="panel-conference"></div>
+        <div class="day-panel" id="panel-prayer"></div>
+        <div class="day-panel" id="panel-band"></div>
+        <div class="day-panel" id="panel-favorites"></div>
+    </main>
+
+    <div id="app-bottomnav-slot"></div>
+
+    <script src="../assets/js/core.js"></script>
+    <script src="../assets/js/hymns.js"></script>
+    <script>
+        YC.loadPartials();
+        YC.FontSizeControl.init();
+        YC.ReadingModeToggle.init();
+        document.getElementById('font-dec').addEventListener('click', () => YC.FontSizeControl.decrease());
+        document.getElementById('font-inc').addEventListener('click', () => YC.FontSizeControl.increase());
+        document.getElementById('reading-toggle').addEventListener('click', () => YC.ReadingModeToggle.toggle());
+    </script>
+</body>
+</html>

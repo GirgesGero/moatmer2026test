@@ -1,0 +1,1014 @@
+{
+  "meta": {
+    "conferenceName": "مؤتمر خلطبيطة بالصلصة",
+    "year": 2026,
+    "startDate": "2026-08-10",
+    "days": [
+      {
+        "day": 1,
+        "date": "10/8",
+        "label": "اليوم الأول"
+      },
+      {
+        "day": 2,
+        "date": "11/8",
+        "label": "اليوم الثاني"
+      },
+      {
+        "day": 3,
+        "date": "12/8",
+        "label": "اليوم الثالث"
+      },
+      {
+        "day": 4,
+        "date": "13/8",
+        "label": "اليوم الرابع (يوم الرحيل)"
+      }
+    ]
+  },
+  "groups": [
+    {
+      "id": "g1",
+      "name": "مجموعة 1"
+    },
+    {
+      "id": "g2",
+      "name": "مجموعة 2"
+    },
+    {
+      "id": "g3",
+      "name": "مجموعة 3"
+    },
+    {
+      "id": "g4",
+      "name": "مجموعة 4"
+    }
+  ],
+  "buses": [
+    {
+      "busNumber": 1,
+      "supervisorName": "مشرف أتوبيس 1",
+      "capacity": 49
+    },
+    {
+      "busNumber": 2,
+      "supervisorName": "مشرف أتوبيس 2",
+      "capacity": 49
+    }
+  ],
+  "rooms": [
+    {
+      "id": "r101",
+      "name": "غرفة 101",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r102",
+      "name": "غرفة 102",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r103",
+      "name": "غرفة 103",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r104",
+      "name": "غرفة 104",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r105",
+      "name": "غرفة 105",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r106",
+      "name": "غرفة 106",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r107",
+      "name": "غرفة 107",
+      "floor": 1,
+      "capacity": 5,
+      "gender": "boys"
+    },
+    {
+      "id": "r108",
+      "name": "غرفة 108",
+      "floor": 1,
+      "capacity": 3,
+      "gender": "boys"
+    },
+    {
+      "id": "r109",
+      "name": "غرفة 109",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r110",
+      "name": "غرفة 110",
+      "floor": 1,
+      "capacity": 4,
+      "gender": "boys"
+    },
+    {
+      "id": "r111",
+      "name": "غرفة 111",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r112",
+      "name": "غرفة 112",
+      "floor": 1,
+      "capacity": 6,
+      "gender": "boys"
+    },
+    {
+      "id": "r201",
+      "name": "غرفة 201",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    },
+    {
+      "id": "r202",
+      "name": "غرفة 202",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    },
+    {
+      "id": "r203",
+      "name": "غرفة 203",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    },
+    {
+      "id": "r204",
+      "name": "غرفة 204",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    },
+    {
+      "id": "r205",
+      "name": "غرفة 205",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    },
+    {
+      "id": "r206",
+      "name": "غرفة 206",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    },
+    {
+      "id": "r207",
+      "name": "غرفة 207",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    },
+    {
+      "id": "r208",
+      "name": "غرفة 208",
+      "floor": 2,
+      "capacity": 3,
+      "gender": "girls"
+    },
+    {
+      "id": "r209",
+      "name": "غرفة 209",
+      "floor": 2,
+      "capacity": 5,
+      "gender": "girls"
+    },
+    {
+      "id": "r210",
+      "name": "غرفة 210",
+      "floor": 2,
+      "capacity": 3,
+      "gender": "girls"
+    },
+    {
+      "id": "r211",
+      "name": "غرفة 211",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    },
+    {
+      "id": "r212",
+      "name": "غرفة 212",
+      "floor": 2,
+      "capacity": 6,
+      "gender": "girls"
+    }
+  ],
+  "participants": [
+    {
+      "id": "p001",
+      "name": "امير",
+      "groupId": "g1",
+      "roomId": "r101",
+      "bedNumber": 1,
+      "busNumber": 1,
+      "seatNumber": 1
+    },
+    {
+      "id": "p002",
+      "name": "ابانوب سويحة",
+      "groupId": "g1",
+      "roomId": "r101",
+      "bedNumber": 2,
+      "busNumber": 1,
+      "seatNumber": 2
+    },
+    {
+      "id": "p003",
+      "name": "جرجس",
+      "groupId": "g1",
+      "roomId": "r101",
+      "bedNumber": 3,
+      "busNumber": 1,
+      "seatNumber": 3
+    },
+    {
+      "id": "p004",
+      "name": "سامح",
+      "groupId": "g1",
+      "roomId": "r101",
+      "bedNumber": 4,
+      "busNumber": 1,
+      "seatNumber": 4
+    },
+    {
+      "id": "p005",
+      "name": "فيلو",
+      "groupId": "g1",
+      "roomId": "r101",
+      "bedNumber": 5,
+      "busNumber": 1,
+      "seatNumber": 5
+    },
+    {
+      "id": "p006",
+      "name": "ابانوب",
+      "groupId": "g1",
+      "roomId": "r101",
+      "bedNumber": 6,
+      "busNumber": 1,
+      "seatNumber": 42
+    },
+    {
+      "id": "p007",
+      "name": "مينا",
+      "groupId": "g1",
+      "roomId": "r102",
+      "bedNumber": 1,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p008",
+      "name": "كيرلس",
+      "groupId": "g1",
+      "roomId": "r102",
+      "bedNumber": 2,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p009",
+      "name": "مارك",
+      "groupId": "g1",
+      "roomId": "r102",
+      "bedNumber": 3,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p010",
+      "name": "يوسف",
+      "groupId": "g1",
+      "roomId": "r102",
+      "bedNumber": 4,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p011",
+      "name": "جون",
+      "groupId": "g1",
+      "roomId": "r102",
+      "bedNumber": 5,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p012",
+      "name": "بيشوي",
+      "groupId": "g1",
+      "roomId": "r102",
+      "bedNumber": 6,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p013",
+      "name": "شنودة",
+      "groupId": "g1",
+      "roomId": "r103",
+      "bedNumber": 1,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p014",
+      "name": "بولا",
+      "groupId": "g1",
+      "roomId": "r103",
+      "bedNumber": 2,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p015",
+      "name": "توني",
+      "groupId": "g1",
+      "roomId": "r103",
+      "bedNumber": 3,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p016",
+      "name": "ديفيد",
+      "groupId": "g1",
+      "roomId": "r103",
+      "bedNumber": 4,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p017",
+      "name": "ميكل",
+      "groupId": "g1",
+      "roomId": "r103",
+      "bedNumber": 5,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p018",
+      "name": "رامي",
+      "groupId": "g1",
+      "roomId": "r103",
+      "bedNumber": 6,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p019",
+      "name": "مريم",
+      "groupId": "g2",
+      "roomId": "r201",
+      "bedNumber": 1,
+      "busNumber": 2,
+      "seatNumber": 39
+    },
+    {
+      "id": "p020",
+      "name": "سارة",
+      "groupId": "g2",
+      "roomId": "r201",
+      "bedNumber": 2,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p021",
+      "name": "يوستينا",
+      "groupId": "g2",
+      "roomId": "r201",
+      "bedNumber": 3,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p022",
+      "name": "دميانة",
+      "groupId": "g2",
+      "roomId": "r201",
+      "bedNumber": 4,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p023",
+      "name": "مارينا",
+      "groupId": "g2",
+      "roomId": "r201",
+      "bedNumber": 5,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p024",
+      "name": "جيرمين",
+      "groupId": "g2",
+      "roomId": "r201",
+      "bedNumber": 6,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p025",
+      "name": "شيري",
+      "groupId": "g2",
+      "roomId": "r202",
+      "bedNumber": 1,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p026",
+      "name": "ناردين",
+      "groupId": "g2",
+      "roomId": "r202",
+      "bedNumber": 2,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p027",
+      "name": "ميرنا",
+      "groupId": "g2",
+      "roomId": "r202",
+      "bedNumber": 3,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p028",
+      "name": "ساندرا",
+      "groupId": "g2",
+      "roomId": "r202",
+      "bedNumber": 4,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p029",
+      "name": "كريستينا",
+      "groupId": "g2",
+      "roomId": "r202",
+      "bedNumber": 5,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p030",
+      "name": "ميريت",
+      "groupId": "g2",
+      "roomId": "r202",
+      "bedNumber": 6,
+      "busNumber": null,
+      "seatNumber": null
+    },
+    {
+      "id": "p1783787403652",
+      "name": "egEBe",
+      "groupId": "g3",
+      "roomId": null,
+      "bedNumber": 50,
+      "busNumber": 2,
+      "seatNumber": 2
+    },
+    {
+      "id": "p1783787430206",
+      "name": "ebgfrvw",
+      "groupId": "g4",
+      "roomId": "r107",
+      "bedNumber": 2,
+      "busNumber": null,
+      "seatNumber": 30
+    },
+    {
+      "id": "p1783787473012",
+      "name": "dfbadgz",
+      "groupId": "g4",
+      "roomId": "r105",
+      "bedNumber": 3,
+      "busNumber": 2,
+      "seatNumber": 30
+    },
+    {
+      "id": "p1783789845637",
+      "name": "ماركو",
+      "groupId": "g3",
+      "roomId": "r105",
+      "bedNumber": 2,
+      "busNumber": 1,
+      "seatNumber": 35
+    }
+  ],
+  "lectures": [
+    {
+      "id": "d1-l1",
+      "day": 1,
+      "title": "المحاضرة الأولى (اليوم الأول)",
+      "speaker": "سيتم تحديده لاحقاً",
+      "time": "13:00 - 15:00",
+      "place": "القاعة الرئيسية",
+      "summary": "المحاضرة الافتتاحية للمؤتمر. سيتم إضافة تفاصيل المحتوى وأهداف المحاضرة قريباً.",
+      "goals": [
+        "التعرف على فكرة المؤتمر الأساسية",
+        "المشاركة والتفاعل البناء"
+      ],
+      "keyTakeaways": [
+        "المحور الأول للمحاضرة",
+        "التطبيقات والنتائج المنتظرة"
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "d2-l1",
+      "day": 2,
+      "title": "المحاضرة الثانية (اليوم الثاني)",
+      "speaker": "سيتم تحديده لاحقاً",
+      "time": "14:00 - 16:00",
+      "place": "القاعة الرئيسية",
+      "summary": "المحاضرة الروحية الرئيسية لليوم الثاني من المؤتمر.",
+      "goals": [
+        "فهم العمق الروحي لشعار المؤتمر",
+        "تطبيق المفاهيم في الحياة العملية"
+      ],
+      "keyTakeaways": [
+        "النقاط الإرشادية لليوم الثاني",
+        "خطوات عملية للنمو الروحي"
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "d3-l1",
+      "day": 3,
+      "title": "المحاضرة الثالثة (اليوم الثالث)",
+      "speaker": "سيتم تحديده لاحقاً",
+      "time": "18:00 - 20:00",
+      "place": "القاعة الرئيسية",
+      "summary": "محاضرة الختام والتقييم الروحي للمؤتمر وتلخيص أهم الدروس المستفادة.",
+      "goals": [
+        "مراجعة ما تم تحصيله في الأيام الثلاثة",
+        "الالتزام بالتطبيقات المستقبلية"
+      ],
+      "keyTakeaways": [
+        "الرسالة الختامية للمؤتمر",
+        "الخطوات القادمة بعد العودة"
+      ],
+      "notesEnabled": true
+    }
+  ],
+  "workshops": [
+    {
+      "id": "d1-w1",
+      "day": 1,
+      "title": "محاضرة بالورشة (اليوم الأول)",
+      "speaker": "فريق الورش والتدريب",
+      "time": "19:00 - 21:00",
+      "place": "قاعة ورش العمل",
+      "summary": "الورشة التفاعلية الأولى في المؤتمر لتقسيم المجموعات وبدء التمارين العملية المشتركة.",
+      "practicalApplication": "تقسيم الحضور لمجموعات عمل وبدء حل دراسة الحالة الأولى.",
+      "skillsGained": [
+        "العمل الجماعي وتوزيع الأدوار",
+        "التفكير الإبداعي وحل المشكلات"
+      ]
+    },
+    {
+      "id": "d2-w1",
+      "day": 2,
+      "title": "محاضرة بالورشة (اليوم الثاني)",
+      "speaker": "فريق الورش والتدريب",
+      "time": "19:00 - 21:00",
+      "place": "قاعة ورش العمل",
+      "summary": "الورشة العملية لليوم الثاني والتي تركز على مهارات التواصل والتقديم والتعبير عن الرأي بشكل تفاعلي.",
+      "practicalApplication": "عرض المجموعات لأفكارهم وحلولهم ومناقشتها جماعياً.",
+      "skillsGained": [
+        "مهارات الإلقاء والعرض المتميز",
+        "تقبل الآراء المختلفة والنقد البناء"
+      ]
+    },
+    {
+      "id": "d3-w1",
+      "day": 3,
+      "title": "محاضرة بالورشة (اليوم الثالث)",
+      "speaker": "فريق الورش والتدريب",
+      "time": "14:00 - 16:00",
+      "place": "قاعة ورش العمل",
+      "summary": "ورشة التقييم النهائي وجمع مخرجات المجموعات وعرض النتيجة الإجمالية للمجهود المشترك.",
+      "practicalApplication": "تقديم المشاريع الختامية للمجموعات وتقييمها بواسطة لجنة المؤتمر.",
+      "skillsGained": [
+        "تجميع مخرجات المشاريع بكفاءة",
+        "إدارة الوقت تحت الضغط"
+      ]
+    }
+  ],
+  "program": [
+    {
+      "id": "d1-a1",
+      "day": 1,
+      "title": "التجمع",
+      "type": "travel",
+      "time": "06:00",
+      "endTime": "06:30",
+      "place": "نقطة التجمع الكنيسة",
+      "notes": "حضور باكر للالتزام بالتحرك"
+    },
+    {
+      "id": "d1-a2",
+      "day": 1,
+      "title": "التحرك",
+      "type": "travel",
+      "time": "06:30",
+      "endTime": "08:00",
+      "place": "الأتوبيسات",
+      "notes": "بداية رحلة المؤتمر"
+    },
+    {
+      "id": "d1-a3",
+      "day": 1,
+      "title": "القداس الإلهي",
+      "type": "prayer",
+      "time": "08:00",
+      "endTime": "10:00",
+      "place": "الكنيسة/بيت المؤتمرات",
+      "notes": "بركة انطلاق المؤتمر"
+    },
+    {
+      "id": "d1-a4",
+      "day": 1,
+      "title": "فطور",
+      "type": "meal",
+      "time": "10:00",
+      "endTime": "10:30",
+      "place": "مطعم بيت المؤتمرات",
+      "notes": ""
+    },
+    {
+      "id": "d1-a5",
+      "day": 1,
+      "title": "التحرك للبيت",
+      "type": "travel",
+      "time": "10:30",
+      "endTime": "11:00",
+      "place": "بيت الشباب",
+      "notes": ""
+    },
+    {
+      "id": "d1-a6",
+      "day": 1,
+      "title": "توزيع الغرف والتسكين والاستلام",
+      "type": "other",
+      "time": "11:00",
+      "endTime": "12:00",
+      "place": "البيت",
+      "notes": "أخذ قسط من الراحة وتجهيز الشنط"
+    },
+    {
+      "id": "d1-a7",
+      "day": 1,
+      "title": "راحة واستلام غرف",
+      "type": "free",
+      "time": "12:00",
+      "endTime": "13:00",
+      "place": "الغرف",
+      "notes": ""
+    },
+    {
+      "id": "d1-a8",
+      "day": 1,
+      "title": "المحاضرة الأولى",
+      "type": "lecture",
+      "time": "13:00",
+      "endTime": "15:00",
+      "place": "القاعة الرئيسية",
+      "notes": "المحاضرة الافتتاحية للمؤتمر",
+      "linkedId": "d1-l1"
+    },
+    {
+      "id": "d1-a10",
+      "day": 1,
+      "title": "الغداء",
+      "type": "meal",
+      "time": "15:00",
+      "endTime": "16:00",
+      "place": "المطعم",
+      "notes": ""
+    },
+    {
+      "id": "d1-a11",
+      "day": 1,
+      "title": "بسين (حمام السباحة)",
+      "type": "free",
+      "time": "16:00",
+      "endTime": "18:00",
+      "place": "حمام السباحة",
+      "notes": "أنشطة ترفيهية مائية"
+    },
+    {
+      "id": "d1-a12",
+      "day": 1,
+      "title": "شاور",
+      "type": "other",
+      "time": "18:00",
+      "endTime": "19:00",
+      "place": "الغرف",
+      "notes": "تجهيز للمحاضرة المسائية"
+    },
+    {
+      "id": "d1-a13",
+      "day": 1,
+      "title": "محاضرة بالورشة",
+      "type": "workshop",
+      "time": "19:00",
+      "endTime": "21:00",
+      "place": "قاعة ورش العمل",
+      "notes": "تطبيقات عملية تفاعلية",
+      "linkedId": "d1-w1"
+    },
+    {
+      "id": "d1-a14",
+      "day": 1,
+      "title": "العشاء",
+      "type": "meal",
+      "time": "21:00",
+      "endTime": "22:00",
+      "place": "المطعم",
+      "notes": ""
+    },
+    {
+      "id": "d1-a15",
+      "day": 1,
+      "title": "ألعاب وفترة ترفيهية",
+      "type": "free",
+      "time": "22:00",
+      "endTime": "23:59",
+      "place": "الملعب / الصالة الرئيسية",
+      "notes": "مسابقات وألعاب جماعية"
+    },
+    {
+      "id": "d2-a1",
+      "day": 2,
+      "title": "صلاة باكر / صلاة جماعية",
+      "type": "prayer",
+      "time": "08:00",
+      "endTime": "09:00",
+      "place": "الكنيسة / القاعة الرئيسية",
+      "notes": "بداية اليوم بطلب معونة الله"
+    },
+    {
+      "id": "d2-a2",
+      "day": 2,
+      "title": "فطور",
+      "type": "meal",
+      "time": "09:00",
+      "endTime": "10:00",
+      "place": "المطعم",
+      "notes": ""
+    },
+    {
+      "id": "d2-a3",
+      "day": 2,
+      "title": "بسين (حمام السباحة)",
+      "type": "free",
+      "time": "10:00",
+      "endTime": "12:00",
+      "place": "حمام السباحة",
+      "notes": "ترفيه وسباحة"
+    },
+    {
+      "id": "d2-a4",
+      "day": 2,
+      "title": "شاور + راحة",
+      "type": "free",
+      "time": "12:00",
+      "endTime": "14:00",
+      "place": "الغرف",
+      "notes": "قسط من الراحة والاسترخاء"
+    },
+    {
+      "id": "d2-a5",
+      "day": 2,
+      "title": "المحاضرة الثانية",
+      "type": "lecture",
+      "time": "14:00",
+      "endTime": "16:00",
+      "place": "القاعة الرئيسية",
+      "notes": "المحاضرة الروحية الرئيسية لليوم الثاني",
+      "linkedId": "d2-l1"
+    },
+    {
+      "id": "d2-a6",
+      "day": 2,
+      "title": "الغداء",
+      "type": "meal",
+      "time": "16:00",
+      "endTime": "17:00",
+      "place": "المطعم",
+      "notes": ""
+    },
+    {
+      "id": "d2-a7",
+      "day": 2,
+      "title": "فترة حرة / أنشطة رياضية",
+      "type": "free",
+      "time": "17:00",
+      "endTime": "19:00",
+      "place": "الملعب",
+      "notes": "مباريات كرة قدم وأنشطة جماعية"
+    },
+    {
+      "id": "d2-a8",
+      "day": 2,
+      "title": "محاضرة بالورشة",
+      "type": "workshop",
+      "time": "19:00",
+      "endTime": "21:00",
+      "place": "قاعة ورش العمل",
+      "notes": "تواصل وتعبير عن الرأي وتفاعل جماعي",
+      "linkedId": "d2-w1"
+    },
+    {
+      "id": "d2-a9",
+      "day": 2,
+      "title": "العشاء",
+      "type": "meal",
+      "time": "21:00",
+      "endTime": "22:00",
+      "place": "المطعم",
+      "notes": ""
+    },
+    {
+      "id": "d2-a10",
+      "day": 2,
+      "title": "حفل سمر وباند المؤتمر",
+      "type": "free",
+      "time": "22:00",
+      "endTime": "23:59",
+      "place": "قاعة الاحتفالات",
+      "notes": "ترانيم وعروض ترفيهية ومسابقات فريدة"
+    },
+    {
+      "id": "d3-a1",
+      "day": 3,
+      "title": "صلاة باكر جماعية",
+      "type": "prayer",
+      "time": "08:00",
+      "endTime": "09:00",
+      "place": "الكنيسة / القاعة",
+      "notes": ""
+    },
+    {
+      "id": "d3-a2",
+      "day": 3,
+      "title": "فطور",
+      "type": "meal",
+      "time": "09:00",
+      "endTime": "10:00",
+      "place": "المطعم",
+      "notes": ""
+    },
+    {
+      "id": "d3-a3",
+      "day": 3,
+      "title": "تسليم غرف وتجهيز شنط",
+      "type": "other",
+      "time": "10:00",
+      "endTime": "11:30",
+      "place": "الغرف",
+      "notes": ""
+    },
+    {
+      "id": "d3-a4",
+      "day": 3,
+      "title": "فترة حرة ألعاب وتصوير",
+      "type": "free",
+      "time": "11:30",
+      "endTime": "13:30",
+      "place": "البيت والحديقة",
+      "notes": "أخذ الصور التذكارية للمجموعات"
+    },
+    {
+      "id": "d3-a5",
+      "day": 3,
+      "title": "الغداء الختامي",
+      "type": "meal",
+      "time": "13:30",
+      "endTime": "14:00",
+      "place": "المطعم",
+      "notes": ""
+    },
+    {
+      "id": "d3-a6",
+      "day": 3,
+      "title": "محاضرة بالورشة الختامية",
+      "type": "workshop",
+      "time": "14:00",
+      "endTime": "16:00",
+      "place": "قاعة ورش العمل",
+      "notes": "عرض مشاريع المجموعات الختامية",
+      "linkedId": "d3-w1"
+    },
+    {
+      "id": "d3-a7",
+      "day": 3,
+      "title": "فترة حرة للاستعداد للعودة",
+      "type": "free",
+      "time": "16:00",
+      "endTime": "18:00",
+      "place": "البيت",
+      "notes": ""
+    },
+    {
+      "id": "d3-a8",
+      "day": 3,
+      "title": "المحاضرة الثالثة والختام",
+      "type": "lecture",
+      "time": "18:00",
+      "endTime": "20:00",
+      "place": "القاعة الرئيسية",
+      "notes": "الرسالة الختامية وتقييم المؤتمر",
+      "linkedId": "d3-l1"
+    },
+    {
+      "id": "d3-a9",
+      "day": 3,
+      "title": "تجميع الشنط والتحرك للأتوبيسات",
+      "type": "travel",
+      "time": "20:00",
+      "endTime": "20:30",
+      "place": "الأتوبيسات",
+      "notes": "نهاية فعاليات المؤتمر والاستعداد للعودة"
+    },
+    {
+      "id": "d3-a10",
+      "day": 3,
+      "title": "الوصول للكنيسة بالمنشية",
+      "type": "travel",
+      "time": "20:30",
+      "endTime": "22:00",
+      "place": "الكنيسة",
+      "notes": "سلامة العودة للمنزل"
+    }
+  ],
+  "hymns": {
+    "conference": [
+      {
+        "id": "ch-placeholder",
+        "title": "ستُضاف ترانيم المؤتمر قريباً",
+        "lyrics": "سيتم إضافة كلمات الترانيم من فريق المؤتمر قريباً..."
+      }
+    ],
+    "prayerCircle": [
+      {
+        "id": "pc-placeholder",
+        "order": 1,
+        "title": "ستُضاف ترانيم حلقة الصلاة قريباً",
+        "lyrics": "سيتم إضافة الترانيم من فريق المؤتمر قريباً...",
+        "verses": "",
+        "notes": ""
+      }
+    ],
+    "band": [
+      {
+        "id": "bh-placeholder",
+        "order": 1,
+        "title": "ستُضاف ترانيم الباند قريباً",
+        "lyrics": "سيتم إضافة الترانيم من فريق الباند قريباً...",
+        "chords": "C - G - Am - F",
+        "notes": ""
+      }
+    ]
+  }
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="description" content="محاضرات مؤتمر الشباب 2026 — المحاضرون والمواضيع لكل يوم">
+    <title>المحاضرات — مؤتمر الشباب</title>
+    <link rel="icon" type="image/png" href="../assets/img/logo-favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../assets/css/content-cards.css">
+    <style>
+        /* Day Tabs */
+        .day-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+            position: sticky;
+            top: 56px;
+            z-index: 100;
+            background: rgba(7,13,25,0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .day-tabs::-webkit-scrollbar { display: none; }
+
+        .day-tab {
+            flex-shrink: 0;
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-light);
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .day-tab:hover  { border-color: var(--primary-border); color: var(--primary-light); }
+        .day-tab.active { background: var(--primary-subtle); border-color: var(--primary-border); color: var(--primary-light); }
+
+        .day-panel { display: none; padding: 1rem; }
+        .day-panel.active { display: block; }
+
+        /* Modal */
+        .lecture-modal .modal-content {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-main);
+        }
+        .lecture-modal .modal-header {
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .lecture-modal .modal-header .btn-close { filter: invert(1); }
+        .goal-chip {
+            display: inline-block;
+            background: var(--primary-subtle);
+            border: 1px solid var(--primary-border);
+            color: var(--primary-light);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.78rem;
+            margin: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-layer bg-layer-ambient"></div>
+
+    <!-- Navbar slot -->
+    <div id="app-navbar-slot"></div>
+
+    <!-- Header -->
+    <header style="padding: 1.25rem 1rem 0.5rem;">
+        <div class="page-header-title">🎤 المحاضرات</div>
+        <div class="page-header-sub">محاضرات مؤتمر الشباب لكل يوم</div>
+    </header>
+
+    <!-- Day Tabs -->
+    <div class="day-tabs" role="tablist">
+        <button class="day-tab active" data-day="1" role="tab">اليوم الأول</button>
+        <button class="day-tab" data-day="2" role="tab">اليوم الثاني</button>
+        <button class="day-tab" data-day="3" role="tab">اليوم الثالث</button>
+    </div>
+
+    <!-- Day Panels -->
+    <main id="lectures-main">
+        <div class="day-panel active" id="panel-day-1"></div>
+        <div class="day-panel" id="panel-day-2"></div>
+        <div class="day-panel" id="panel-day-3"></div>
+    </main>
+
+    <!-- Lecture Detail Modal -->
+    <div class="modal fade lecture-modal" id="lectureModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modal-title">عنوان المحاضرة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav slot -->
+    <div id="app-bottomnav-slot"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/core.js"></script>
+    <script src="../assets/js/lectures.js"></script>
+    <script>YC.loadPartials();</script>
+</body>
+</html>
