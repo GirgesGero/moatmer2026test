@@ -613,6 +613,26 @@ function openAddModalForGroup(groupId) {
     $('#addGroup').val(groupId);
 }
 
+function updateGroupScore(groupId, scoreStr) {
+    if (!db || !db.groups) return;
+    const scoreVal = Math.min(100, Math.max(0, parseInt(scoreStr) || 0));
+    const group = db.groups.find(g => g.id === groupId);
+    if (group) {
+        group.score = scoreVal;
+        markUnsaved();
+        saveToStorage();
+        showToast(`تم تحديث سكور "${group.name}" إلى ${scoreVal}% 🎯`, 'success');
+        
+        // تحديث القيمة المعروضة للمدخل
+        const inputs = document.querySelectorAll('.group-score-input');
+        inputs.forEach(input => {
+            if (input.getAttribute('onchange') && input.getAttribute('onchange').includes(groupId)) {
+                input.value = scoreVal;
+            }
+        });
+    }
+}
+
 /* drag & drop support */
 function onDragStartParticipant(event, participantId) {
     event.dataTransfer.setData('text/plain', participantId);
