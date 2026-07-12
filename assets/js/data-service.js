@@ -25,8 +25,16 @@ class DataService {
         const cachedStatic = sessionStorage.getItem(cacheKey);
 
         if (cachedStatic) {
-            staticDataPromise = Promise.resolve(JSON.parse(cachedStatic));
-        } else {
+            try {
+                const parsed = JSON.parse(cachedStatic);
+                const hasScores = parsed && parsed.groups && parsed.groups.every(g => typeof g.score !== 'undefined');
+                if (hasScores) {
+                    staticDataPromise = Promise.resolve(parsed);
+                }
+            } catch(e) {}
+        }
+        
+        if (!staticDataPromise) {
             staticDataPromise = fetch(url)
                 .then(res => {
                     if (!res.ok) throw new Error('فشل جلب ملف البيانات: ' + res.status);

@@ -57,8 +57,16 @@
                 leaderboardSlot.innerHTML = `
                     <div class="leaderboard-container">
                         <div class="leaderboard-title">
-                            <i class="bi bi-fire trophy-glow"></i>
-                            <span>دوري المجموعات: مين واخد التحدي لحسابه؟ 🔥</span>
+                            <span style="filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));">🔥</span>
+                            <span>دوري المجموعات: <span style="color: #c084fc; text-shadow: 0 0 10px rgba(192, 132, 252, 0.3);">مين</span> واخد التحدي لحسابه؟</span>
+                            <span style="filter: hue-rotate(270deg) drop-shadow(0 0 5px rgba(239, 68, 68, 0.5));">🔥</span>
+                        </div>
+                        <div class="leaderboard-subtitle">
+                            <span class="sub-line left"></span>
+                            <span class="sub-sparkle">✨</span>
+                            <span class="sub-txt">كل مجموعة ليها شغفها، والتحدي واحد!</span>
+                            <span class="sub-sparkle">✨</span>
+                            <span class="sub-line right"></span>
                         </div>
                         <div class="leaderboard-podium">
                             ${podiumHtml}
@@ -87,7 +95,7 @@
                     <div class="group-card-header">
                         <div class="group-card-badge">${i + 1}</div>
                         <div>
-                            <div class="group-card-title">${escapeHTML(g.name)}</div>
+                            <div class="group-card-title">${escapeHTML(getGroupDisplayName(g.name))}</div>
                             <div class="group-card-count">${members.length} عضو</div>
                         </div>
                     </div>
@@ -125,25 +133,70 @@
         const originalIndex = groups.findIndex(orig => orig.id === g.id);
         
         const rankBadges = {
-            1: { icon: '👑', class: 'first', rankColor: '#ffb300', rankGlow: 'rgba(255, 179, 0, 0.55)', label: 'البطل الحالي 👑' },
-            2: { icon: '⚡', class: 'second', rankColor: '#00e5ff', rankGlow: 'rgba(0, 229, 255, 0.45)', label: 'المنافس الأقرب ⚡' },
-            3: { icon: '🎯', class: 'third', rankColor: '#ff1744', rankGlow: 'rgba(255, 23, 68, 0.4)', label: 'في المعركة 🎯' }
+            1: { 
+                icon: '👑', 
+                rankStr: '01',
+                class: 'first', 
+                rankColor: '#fbbf24', 
+                rankGlow: 'rgba(251, 191, 36, 0.45)', 
+                bgGrad: 'linear-gradient(135deg, #ffd700 0%, #ff9800 100%)', 
+                badgeLabel: 'المركز الأول'
+            },
+            2: { 
+                icon: '🎯', 
+                rankStr: '02',
+                class: 'second', 
+                rankColor: '#c084fc', 
+                rankGlow: 'rgba(192, 132, 252, 0.35)', 
+                bgGrad: 'linear-gradient(135deg, #c084fc 0%, #7e22ce 100%)', 
+                badgeLabel: ''
+            },
+            3: { 
+                icon: '⚡', 
+                rankStr: '03',
+                class: 'third', 
+                rankColor: '#0ea5e9', 
+                rankGlow: 'rgba(14, 165, 233, 0.35)', 
+                bgGrad: 'linear-gradient(135deg, #38bdf8 0%, #0369a1 100%)', 
+                badgeLabel: ''
+            }
         };
         const badge = rankBadges[rank];
         const scoreVal = g.score || 0;
-        const groupShort = g.name.replace('مجموعة', 'م').trim();
         
+        const wreathSvg = rank === 1 
+            ? `<svg class="laurel-wreath" viewBox="0 0 100 100">
+                <path d="M 32,70 C 18,60 14,40 18,20" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 18,20 C 12,23 7,16 14,13" fill="#fbbf24"/>
+                <path d="M 20,35 C 13,38 9,30 16,27" fill="#fbbf24"/>
+                <path d="M 23,50 C 16,52 12,44 19,40" fill="#fbbf24"/>
+                <path d="M 28,63 C 21,65 17,57 24,53" fill="#fbbf24"/>
+                <path d="M 68,70 C 82,60 86,40 82,20" fill="none" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 82,20 C 88,23 93,16 86,13" fill="#fbbf24"/>
+                <path d="M 80,35 C 87,38 91,30 84,27" fill="#fbbf24"/>
+                <path d="M 77,50 C 84,52 88,44 81,40" fill="#fbbf24"/>
+                <path d="M 72,63 C 79,65 83,57 76,53" fill="#fbbf24"/>
+               </svg>` 
+            : '';
+
         return `
-        <div class="podium-col ${badge.class}">
-            <div class="podium-avatar-wrap">
-                <span class="podium-rank-badge">${badge.icon}</span>
-                <div class="podium-avatar" style="--rank-color: ${badge.rankColor}; --rank-glow: ${badge.rankGlow};">${escapeHTML(groupShort)}</div>
+        <div class="podium-card-panel ${badge.class}" style="--rank-color: ${badge.rankColor}; --rank-glow: ${badge.rankGlow};">
+            <div class="hexagon-wrap">
+                ${wreathSvg}
+                <span class="hexagon-badge">${badge.icon}</span>
+                <div class="hexagon" style="background: ${badge.bgGrad};">${badge.rankStr}</div>
             </div>
-            <div class="podium-name">${escapeHTML(g.name)}</div>
-            <div class="podium-status-tag" style="color: ${badge.rankColor};">${badge.label}</div>
-            <div class="podium-stars">${renderStars(scoreVal)}</div>
-            <div class="podium-score">${scoreVal} <span class="score-lbl">نقطة</span></div>
-            <div class="podium-pedestal"></div>
+            <div class="podium-ribbon" style="--ribbon-color: ${badge.rankColor};">${escapeHTML(getGroupDisplayName(g.name))}</div>
+            <div class="progress-ring-wrap" style="--progress-color: ${badge.rankColor}; --percentage: ${scoreVal}%;">
+                <div class="progress-ring-inner">
+                    <span class="progress-percent">${scoreVal}%</span>
+                    <span class="progress-lbl">التقدم</span>
+                </div>
+            </div>
+            <div class="podium-stars-row">
+                ${renderStars(scoreVal)}
+            </div>
+            ${badge.badgeLabel ? `<div class="podium-pill-label"><i class="bi bi-trophy-fill"></i> ${badge.badgeLabel}</div>` : ''}
         </div>
         `;
     }
@@ -152,17 +205,44 @@
         const originalIndex = groups.findIndex(orig => orig.id === g.id);
         const color = colors[originalIndex % colors.length];
         const scoreVal = g.score || 0;
-        const groupShort = g.name.replace('مجموعة', 'م').trim();
         
         return `
-        <div class="runner-row">
-            <span class="runner-rank">#${rank}</span>
-            <div class="runner-avatar-sm" style="background: ${color};">${escapeHTML(groupShort)}</div>
-            <span class="runner-name">${escapeHTML(g.name)}</span>
-            <div class="runner-stars">${renderStars(scoreVal)}</div>
-            <span class="runner-score">${scoreVal} نقطة</span>
+        <div class="runner-card-row" style="--group-color: ${color};">
+            <div class="runner-row-left">
+                <div class="runner-avatar-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="progress-ring-wrap mini" style="--progress-color: ${color}; --percentage: ${scoreVal}%;">
+                    <div class="progress-ring-inner">
+                        <span class="progress-percent">${scoreVal}%</span>
+                        <span class="progress-lbl">التقدم</span>
+                    </div>
+                </div>
+                <div class="runner-info">
+                    <span class="runner-name">${escapeHTML(getGroupDisplayName(g.name))}</span>
+                    <div class="runner-stars-row">${renderStars(scoreVal)}</div>
+                </div>
+            </div>
+            <div class="runner-row-right">
+                <div class="runner-stat-badge">
+                    <div class="runner-avatar-icon" style="width:20px;height:20px;font-size:0.65rem;background:transparent;border:none;box-shadow:none;color:#94a3b8;"><i class="bi bi-people-fill"></i></div>
+                    <div class="runner-stat-text">
+                        <span class="stat-num">${groups.length}</span>
+                        <span class="stat-lbl">مجموعات</span>
+                    </div>
+                </div>
+                <div class="runner-rank-badge">#${rank}</div>
+            </div>
         </div>
         `;
+    }
+
+    function getGroupDisplayName(name) {
+        const mapping = {
+            'مجموعة 1': 'المجموعة الأولى',
+            'مجموعة 2': 'المجموعة الثانية',
+            'مجموعة 3': 'المجموعة الثالثة',
+            'مجموعة 4': 'المجموعة الرابعة'
+        };
+        return mapping[name.trim()] || name;
     }
 
     function escapeHTML(s) {

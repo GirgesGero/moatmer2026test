@@ -2292,216 +2292,393 @@ body {
 }
 
 /* =====================================================
-   لوحة صدارة المجموعات التنافسية (Competitive Leaderboard UI - v3.2)
+   لوحة صدارة المجموعات التنافسية (Competitive Leaderboard UI - v4.0)
    ===================================================== */
 .leaderboard-container {
-    margin: 1rem 1.5rem 1.5rem;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.5) 0%, rgba(8, 12, 28, 0.7) 100%);
-    border: 1px solid rgba(212, 168, 67, 0.15);
-    border-radius: 24px;
-    padding: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(212, 168, 67, 0.05);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    margin: 1.2rem 1rem 1.5rem;
+    background: radial-gradient(circle at top, rgba(16, 20, 38, 0.95) 0%, rgba(8, 10, 20, 0.99) 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.05);
+    border-radius: 28px;
+    padding: 24px 16px 20px;
+    box-shadow: 
+        0 20px 50px rgba(0, 0, 0, 0.6), 
+        0 0 30px rgba(251, 191, 36, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+}
+.leaderboard-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #fbbf24 50%, transparent);
 }
 .leaderboard-title {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    font-size: 1.05rem;
-    font-weight: 855;
+    font-size: 1.15rem;
+    font-weight: 900;
     color: #fff;
-    margin-bottom: 24px;
-    border-bottom: 1.5px solid rgba(255, 255, 255, 0.05);
-    padding-bottom: 10px;
+    margin-bottom: 6px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 .trophy-glow {
     color: #fbbf24;
-    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.5));
-    font-size: 1.3rem;
-    animation: trophyFloat 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.6));
+    font-size: 1.35rem;
 }
-@keyframes trophyFloat {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-3px) scale(1.08); }
+.leaderboard-subtitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 24px;
+    text-align: center;
 }
 
-/* منصة التتويج */
+/* منصة التتويج - كروت رأسية */
 .leaderboard-podium {
     display: flex;
     align-items: flex-end;
     justify-content: center;
     gap: 12px;
-    margin-bottom: 20px;
-    padding: 0 10px;
+    margin-bottom: 24px;
+    padding: 0 2px;
 }
-.podium-col {
+
+.podium-card-panel {
     display: flex;
     flex-direction: column;
     align-items: center;
     flex: 1;
     min-width: 0;
-    transition: transform 0.3s ease;
-}
-.podium-col:hover {
-    transform: translateY(-4px);
-}
-.podium-avatar-wrap {
+    border-radius: 20px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--rank-color) 4%, transparent) 0%, rgba(13, 18, 36, 0.95) 100%);
+    border: 1px solid color-mix(in srgb, var(--rank-color) 25%, rgba(255,255,255,0.05));
+    padding: 16px 8px 12px;
+    box-shadow: 
+        0 15px 30px rgba(0, 0, 0, 0.4),
+        0 0 20px var(--rank-glow);
     position: relative;
-    margin-bottom: 8px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.podium-rank-badge {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 1.4rem;
+.podium-card-panel:hover {
+    transform: translateY(-6px);
+}
+
+.podium-card-panel.first {
+    min-height: 290px;
+    border: 2px solid #fbbf24;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.5),
+        0 0 25px rgba(251, 191, 36, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    background: linear-gradient(180deg, rgba(251, 191, 36, 0.06) 0%, rgba(13, 18, 36, 0.98) 100%);
+    z-index: 3;
+}
+.podium-card-panel.second {
+    min-height: 260px;
     z-index: 2;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
-.podium-avatar {
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    background: #0f172a;
-    border: 3px solid var(--group-color);
-    box-shadow: 0 0 15px color-mix(in srgb, var(--group-color) 45%, transparent);
-    color: #fff;
-    font-weight: 900;
-    font-size: 1.4rem;
+.podium-card-panel.third {
+    min-height: 260px;
+    z-index: 2;
+}
+
+/* الهكسيجون (الشكل السداسي) */
+.hexagon-wrap {
+    position: relative;
+    width: 66px;
+    height: 72px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 8px;
+    margin-top: 10px;
+}
+.podium-card-panel.first .hexagon-wrap {
+    width: 74px;
+    height: 80px;
+    margin-top: 14px;
+}
+
+.laurel-wreath {
+    position: absolute;
+    width: 108px;
+    height: 108px;
+    top: -24px;
+    left: -21px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.hexagon-badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.3rem;
+    z-index: 5;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+.podium-card-panel.first .hexagon-badge {
+    font-size: 1.5rem;
+    top: -18px;
+}
+
+.hexagon {
+    width: 100%;
+    height: 100%;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 900;
+    font-family: 'Outfit', sans-serif;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.2);
     z-index: 1;
 }
-.podium-col.first .podium-avatar {
-    width: 66px;
-    height: 66px;
-    font-size: 1.7rem;
-    border-color: #fbbf24;
-    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+.podium-card-panel.first .hexagon {
+    font-size: 1.45rem;
 }
-.podium-name {
-    font-size: 0.82rem;
-    font-weight: 850;
-    color: var(--text-main);
+
+/* شريط الاسم (الريبون) */
+.podium-ribbon {
+    width: 110%;
     text-align: center;
+    background: linear-gradient(90deg, transparent 0%, var(--ribbon-color) 20%, var(--ribbon-color) 80%, transparent 100%);
+    color: #fff;
+    font-weight: 850;
+    font-size: 0.74rem;
+    padding: 3px 0;
+    margin: 8px 0 12px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-left: none;
+    border-right: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 100%;
-    margin-bottom: 4px;
 }
-.podium-stars {
+.podium-card-panel.first .podium-ribbon {
+    font-size: 0.8rem;
+    padding: 4px 0;
+}
+
+/* حلقة التقدم الدائرية */
+.progress-ring-wrap {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    background: conic-gradient(var(--progress-color) var(--percentage), rgba(255, 255, 255, 0.04) 0);
     display: flex;
-    gap: 1.5px;
-    margin-bottom: 4px;
+    align-items: center;
     justify-content: center;
+    position: relative;
+    margin-bottom: 12px;
+    box-shadow: 
+        0 4px 10px rgba(0,0,0,0.3),
+        inset 0 0 6px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+}
+.podium-card-panel.first .progress-ring-wrap {
+    width: 74px;
+    height: 74px;
+}
+
+.progress-ring-inner {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #0b0e1a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+}
+.podium-card-panel.first .progress-ring-inner {
+    width: 62px;
+    height: 62px;
+}
+
+.progress-percent {
+    font-size: 0.84rem;
+    font-weight: 900;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.1;
+}
+.podium-card-panel.first .progress-percent {
+    font-size: 0.95rem;
+}
+.progress-lbl {
+    font-size: 0.52rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+/* النجوم */
+.podium-stars-row {
+    display: flex;
+    gap: 0.5px;
+    margin-bottom: 8px;
 }
 .star-icon {
-    font-size: 0.65rem;
+    font-size: 0.58rem;
 }
 .star-icon.filled {
     color: #fbbf24;
-    filter: drop-shadow(0 0 3px rgba(251, 191, 36, 0.6));
+    filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.7));
 }
 .star-icon.empty {
-    color: rgba(255,255,255,0.08);
-}
-.podium-score {
-    font-size: 0.95rem;
-    font-weight: 900;
-    color: #fff;
-}
-.podium-col.first .podium-score {
-    color: #fbbf24;
-    font-size: 1.15rem;
-}
-.score-lbl {
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.05);
 }
 
-.podium-pedestal {
-    width: 100%;
-    background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-bottom: none;
-    border-radius: 8px 8px 0 0;
-    margin-top: 8px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+/* الوسم السفلي */
+.podium-pill-label {
+    background: rgba(251, 191, 36, 0.12);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.6rem;
+    font-weight: 800;
+    color: #fbbf24;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    animation: pulseLabel 2s infinite ease-in-out;
 }
-.podium-col.first .podium-pedestal {
-    height: 52px;
-    border-color: rgba(251, 191, 36, 0.25);
-    background: linear-gradient(180deg, rgba(251, 191, 36, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%);
-}
-.podium-col.second .podium-pedestal {
-    height: 36px;
-}
-.podium-col.third .podium-pedestal {
-    height: 22px;
+@keyframes pulseLabel {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.03); opacity: 0.9; }
 }
 
 /* المركز الرابع والمراكز اللاحقة */
 .leaderboard-runners-up {
-    margin-top: 14px;
-    border-top: 1px dashed rgba(255, 255, 255, 0.06);
-    padding-top: 12px;
+    margin-top: 16px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    padding-top: 14px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
-.runner-row {
+.runner-card-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    border-right: 4px solid var(--group-color);
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.runner-card-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.06);
+    transform: scale(1.01) translateX(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+}
+
+.runner-row-left {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.02);
-    border-radius: 12px;
-    transition: all 0.25s ease;
+    min-width: 0;
 }
-.runner-row:hover {
-    background: rgba(255, 255, 255, 0.04);
-    transform: translateX(-2px);
-}
-.runner-rank {
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: var(--text-secondary);
-    width: 22px;
-}
-.runner-avatar-sm {
-    width: 24px;
-    height: 24px;
+.runner-avatar-icon {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
+    background: rgba(168, 85, 247, 0.15);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    color: #c084fc;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.72rem;
-    font-weight: 900;
-    color: #fff;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    font-size: 0.95rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.progress-ring-wrap.mini {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 0;
+}
+.progress-ring-wrap.mini .progress-ring-inner {
+    width: 36px;
+    height: 36px;
+}
+.progress-ring-wrap.mini .progress-percent {
+    font-size: 0.65rem;
+}
+.progress-ring-wrap.mini .progress-lbl {
+    font-size: 0.38rem;
+}
+
+.runner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 .runner-name {
-    font-size: 0.8rem;
+    font-size: 0.84rem;
     font-weight: 800;
     color: var(--text-main);
-    flex: 1;
 }
-.runner-stars {
+.runner-stars-row {
     display: flex;
-    gap: 1px;
+    gap: 0.5px;
 }
-.runner-stars .star-icon {
-    font-size: 0.58rem;
+
+.runner-row-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
 }
-.runner-score {
+.runner-stat-badge {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.runner-stat-badge i {
+    font-size: 0.75rem;
+}
+.runner-rank-badge {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 0.82rem;
-    font-weight: 850;
-    color: var(--text-main);
+    font-weight: 900;
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 
 
