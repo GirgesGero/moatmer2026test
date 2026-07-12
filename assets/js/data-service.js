@@ -20,32 +20,47 @@ class DataService {
         const prefix = location.pathname.includes('/pages/') ? '../' : '';
         const url = prefix + 'assets/data/conference-data.json';
 
-        this.loadPromise = fetch(url)
-            .then(res => {
-                if (!res.ok) throw new Error('فشل جلب ملف البيانات: ' + res.status);
-                return res.json();
-            })
+        let staticDataPromise;
+        const cacheKey = 'static_conference_data';
+        const cachedStatic = sessionStorage.getItem(cacheKey);
+
+        if (cachedStatic) {
+            staticDataPromise = Promise.resolve(JSON.parse(cachedStatic));
+        } else {
+            staticDataPromise = fetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error('فشل جلب ملف البيانات: ' + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+                    return data;
+                });
+        }
+
+        this.loadPromise = staticDataPromise
             .then(data => {
-                // دمج مسودة المتصفح إن وجدت للحفاظ على تعديلات المشتركين وتوزيعاتهم دون الكتابة فوق بقية البيانات الثابتة الجديدة
+                const dataCopy = JSON.parse(JSON.stringify(data));
+
                 try {
                     const saved = localStorage.getItem('conference_db_draft');
                     if (saved) {
                         const draft = JSON.parse(saved);
                         if (draft && draft.db && Array.isArray(draft.db.participants)) {
-                            // نستبدل فقط مصفوفة المشاركين بتعديلاتها
-                            data.participants = draft.db.participants;
+                            dataCopy.participants = draft.db.participants;
                         }
                     }
                 } catch (e) {
                     console.warn('DataService: فشل دمج مسودة المشتركين من localStorage:', e);
                 }
 
-                this.cachedData = data;
-                window.conferenceData = data;
-                return data;
+                this.cachedData = dataCopy;
+                window.conferenceData = dataCopy;
+                return dataCopy;
             })
             .catch(err => {
                 console.error('DataService.loadConference: ', err);
+                this.loadPromise = null;
                 throw err;
             });
 

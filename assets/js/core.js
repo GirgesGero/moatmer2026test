@@ -29,9 +29,15 @@ async function loadPartials() {
         if (!el) return;
         if (el.children.length > 0) return;
         try {
-            const res = await fetch(file);
-            if (!res.ok) throw new Error(res.status);
-            el.innerHTML = await res.text();
+            const cacheKey = 'partial_' + file;
+            let html = sessionStorage.getItem(cacheKey);
+            if (!html) {
+                const res = await fetch(file);
+                if (!res.ok) throw new Error(res.status);
+                html = await res.text();
+                sessionStorage.setItem(cacheKey, html);
+            }
+            el.innerHTML = html;
         } catch (e) {
             console.warn('loadPartials: فشل تحميل', file, e);
         }
@@ -463,12 +469,12 @@ function searchParticipant(query) {
     });
 }
 
-// ─── ربط انتقالات الصفحات التلقائي ───
+// ─── ربط انتقالات الصفحات التلقائي والتحميل المسبق الذكي ───
 document.addEventListener('DOMContentLoaded', () => {
     document.body.classList.add('page-transition-in');
     setTimeout(() => {
         document.body.classList.remove('page-transition-in');
-    }, 300);
+    }, 150); // تقليص وقت الدخول من 300ms إلى 150ms لتسريع التفاعل
 
     document.addEventListener('click', (e) => {
         const link = e.target.closest('a[href]');
@@ -477,11 +483,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const href = link.getAttribute('href');
         if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('tel:') || href.startsWith('mailto:')) return;
         
-        // منع السلوك الافتراضي والانتقال بعد نهاية الأنيميشن
         e.preventDefault();
         document.body.classList.add('page-transition-out');
         setTimeout(() => {
             window.location.href = href;
-        }, 200);
+        }, 80); // تقليص وقت الخروج من 200ms إلى 80ms لتسريع الانتقال الفعلي
     });
+
+    // جلب الصفحات مسبقاً (Prefetch) عند التحويم أو اللمس لتوفير زمن استجابة الشبكة بالكامل على GitHub Pages
+    setupLinkPrefetch();
 });
+
+function setupLinkPrefetch() {
+    const prefetchMap = new Set();
+    const prefetch = (url) => {
+        if (prefetchMap.has(url)) return;
+        prefetchMap.add(url);
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = url;
+        document.head.appendChild(link);
+    };
+
+    // التحويم للفأرة (أجهزة المكتب)
+    document.addEventListener('mouseover', (e) => {
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        if (href && !href.startsWith('#') && !href.startsWith('http') && !href.startsWith('tel') && !href.startsWith('mailto')) {
+            prefetch(href);
+        }
+    });
+
+    // اللمس بالأصابع (أجهزة الموبايل)
+    document.addEventListener('touchstart', (e) => {
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+        const href = a.getAttribute('href');
+        if (href && !href.startsWith('#') && !href.startsWith('http') && !href.startsWith('tel') && !href.startsWith('mailto')) {
+            prefetch(href);
+        }
+    }, { passive: true });
+}
