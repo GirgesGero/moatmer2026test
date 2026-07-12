@@ -46,7 +46,6 @@ async function loadPartials() {
     // تظليل التبويب النشط حسب اسم الصفحة الحالية
     _highlightActiveTab();
     _setupBackButton();
-    _setupFloatingOrb();
     _setupDrawerNavigation();
 }
 
@@ -93,41 +92,7 @@ function _setupBackButton() {
     }
 }
 
-function _setupFloatingOrb() {
-    const path = location.pathname;
-    const page = path.split('/').pop() || 'home.html';
-    if (page === 'index.html' || page === 'manage-passengers.html') return;
-    if (document.getElementById('floating-orb-container')) return;
 
-    const orb = document.createElement('div');
-    orb.id = 'floating-orb-container';
-    orb.className = 'floating-orb-container';
-    orb.innerHTML = `
-        <button class="floating-orb-trigger" id="floating-orb-trigger" aria-label="مساعد سري">
-            <i class="bi bi-lightning-charge-fill"></i>
-        </button>
-        <div class="floating-orb-menu">
-            <a href="program.html" class="floating-orb-item" data-title="البرنامج" style="border-color:#a78bfa;color:#a78bfa;"><i class="bi bi-calendar3"></i></a>
-            <a href="prayer.html" class="floating-orb-item" data-title="الصلوات" style="border-color:#f59e0b;color:#f59e0b;"><i class="bi bi-book-fill"></i></a>
-            <a href="buses.html" class="floating-orb-item" data-title="الأتوبيس" style="border-color:#06b6d4;color:#06b6d4;"><i class="bi bi-bus-front-fill"></i></a>
-            <a href="games.html" class="floating-orb-item" data-title="الألعاب" style="border-color:#fb7185;color:#fb7185;"><i class="bi bi-controller"></i></a>
-        </div>
-    `;
-
-    document.body.appendChild(orb);
-
-    const trigger = document.getElementById('floating-orb-trigger');
-    trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        orb.classList.toggle('active');
-        trigger.classList.toggle('active');
-    });
-
-    document.addEventListener('click', () => {
-        orb.classList.remove('active');
-        trigger.classList.remove('active');
-    });
-}
 
 function _highlightActiveTab() {
     const path = location.pathname;

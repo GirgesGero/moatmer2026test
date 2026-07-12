@@ -231,24 +231,68 @@
         }
     }
 
-    /* ─── 5. فلتر وبحث ذكي مع فتح الغرفة المطابقة ─── */
-    function applyFilters(q) {
-        const query = YC.normalizeArabic(q || '');
+    /* ─── 5. فلتر وبحث ذكي مع تظليل الغرف دون إعادة بناء الـ DOM ─── */
+    function applyFilters(q, autoOpenModal = false) {
+        const query = YC.normalizeArabic(q || '').trim();
         
-        // إزالة التظليل النيوني القديم
-        document.querySelectorAll('.corridor-room-block').forEach(b => b.classList.remove('highlighted'));
-
+        // تجميع معرفات الغرف المطابقة
+        const matchedRoomIds = new Set();
         const filtered = (window.rooms || []).filter(room => {
             const genderOk = activeGender === 'all' || room.gender === activeGender;
             if (!genderOk) return false;
-            if (!query) return true;
+            if (!query) {
+                matchedRoomIds.add(room.id);
+                return true;
+            }
             
             const nameMatch = YC.normalizeArabic(room.name).includes(query);
             const personMatch = (room.persons || []).some(p => YC.normalizeArabic(p).includes(query));
-            return nameMatch || personMatch;
+            const isMatched = nameMatch || personMatch;
+            if (isMatched) {
+                matchedRoomIds.add(room.id);
+            }
+            return isMatched;
         });
 
-        renderAll(filtered);
+        // تحديث مظهر الغرف مباشرة في الـ DOM لتكون التجربة لحظية وسريعة جداً
+        document.querySelectorAll('.corridor-room-block').forEach(blockEl => {
+            const roomId = parseInt(blockEl.id.replace('room-block-', ''));
+            const isMatched = matchedRoomIds.has(roomId);
+            
+            // تحقق التصفية حسب الجنس
+            const gender = blockEl.classList.contains('boys') ? 'boys' : 'girls';
+            const genderOk = activeGender === 'all' || gender === activeGender;
+            
+            if (!genderOk) {
+                blockEl.style.display = 'none';
+                blockEl.classList.remove('highlighted', 'dimmed');
+            } else {
+                blockEl.style.display = ''; // إرجاع العرض الافتراضي
+                
+                if (!query) {
+                    blockEl.classList.remove('highlighted', 'dimmed');
+                } else {
+                    if (isMatched) {
+                        blockEl.classList.remove('dimmed');
+                        blockEl.classList.add('highlighted');
+                    } else {
+                        blockEl.classList.remove('highlighted');
+                        blockEl.classList.add('dimmed');
+                    }
+                }
+            }
+        });
+
+        // تصفية الكوريدورات بالكامل إذا لم يكن هناك أي غرفة معروضة فيها
+        document.querySelectorAll('.corridor-wrap').forEach(corridorEl => {
+            const gender = corridorEl.classList.contains('boys') ? 'boys' : 'girls';
+            const genderOk = activeGender === 'all' || gender === activeGender;
+            if (genderOk) {
+                corridorEl.style.display = '';
+            } else {
+                corridorEl.style.display = 'none';
+            }
+        });
 
         // إظهار وتحديث بادج تصفية البحث النشط
         const wrap = document.getElementById('accomm-active-search-wrap');
@@ -272,17 +316,16 @@
             }
         }
 
-        // إذا كان هناك بحث مطابق تماماً لاسم شخص أو غرفة، نقوم بفتحها وتظليلها
-        if (query.length > 0 && filtered.length > 0) {
+        // فتح المودال تلقائياً فقط إذا كان مطلوباً (مثل عند البحث النهائي أو الضغط على Enter)
+        if (autoOpenModal && query.length > 0 && filtered.length > 0) {
             const matchedRoom = filtered[0];
             const blockEl = document.getElementById(`room-block-${matchedRoom.id}`);
             if (blockEl) {
                 blockEl.classList.add('highlighted');
-                // فتح المودال الخاص بالغرفة تلقائياً
                 setTimeout(() => {
                     openRoomModal(matchedRoom);
                     blockEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 400);
+                }, 100);
             }
         }
     }
@@ -301,7 +344,12 @@
     const searchInput = document.getElementById('accomm-search');
     if (searchInput) {
         searchInput.addEventListener('input', function () {
-            applyFilters(this.value);
+            applyFilters(this.value, false);
+        });
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                applyFilters(this.value, true);
+            }
         });
     }
 
@@ -382,14 +430,14 @@
                         overlay.style.display = 'none';
                         sessionStorage.setItem('search_shown_accomm', 'true');
                         if (searchInput) searchInput.value = val;
-                        applyFilters(val);
+                        applyFilters(val, true);
                     };
                 }
             } else {
                 if (searchInput) searchInput.value = val;
                 overlay.style.display = 'none';
                 sessionStorage.setItem('search_shown_accomm', 'true');
-                applyFilters(val);
+                applyFilters(val, true);
             }
         }
 

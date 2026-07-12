@@ -9,8 +9,9 @@
         const name = $('#fb-name').val().trim();
         const experience = $('#fb-experience').val().trim();
         const destination = $('#fb-destination').val().trim();
+        const rating = parseInt($('#fb-rating').val() || '0');
         
-        const isValid = name !== '' && experience !== '' && destination !== '';
+        const isValid = name !== '' && experience !== '' && destination !== '' && rating > 0;
         $('#fb-submit').prop('disabled', !isValid);
     }
 
@@ -54,11 +55,15 @@
         const name = $('#fb-name').val().trim();
         const experience = $('#fb-experience').val().trim();
         const destination = $('#fb-destination').val().trim();
+        const ratingVal = parseInt($('#fb-rating').val() || '0');
 
-        if (!name || !experience || !destination) { 
-            alert('لو سمحت كمّل كل البيانات!'); 
+        if (!name || !experience || !destination || ratingVal === 0) { 
+            alert('لو سمحت كمّل كل البيانات وقيّم المؤتمر بالنجوم!'); 
             return; 
         }
+
+        const starsString = '⭐'.repeat(ratingVal);
+        const formattedExperience = `[التقييم: ${starsString}]\n${experience}`;
 
         const deviceInfo = getDeviceInfo();
         const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfw4IwP36zSLoYRO5k5YKCkC7BMcnxmr3emWVtMZr-QDF52Fw/formResponse';
@@ -69,7 +74,7 @@
             data: {
                 'entry.1430254715': name,
                 'entry.216982914': destination,
-                'entry.1118671607': experience, // الحقل الجديد لرأيه في التجربة
+                'entry.1118671607': formattedExperience, // الحقل الجديد لرأيه في التجربة مع النجوم
                 'entry.2017420717': `${deviceInfo.date} ${deviceInfo.time}`,
                 'entry.661154536': `${deviceInfo.deviceType} - ${deviceInfo.os} - ${deviceInfo.browser}`
             },
@@ -79,6 +84,8 @@
             showSuccessCelebration();
             $('#fb-destination').val('');
             $('#fb-experience').val('');
+            $('#fb-rating').val('0');
+            $('.rating-star').removeClass('active bi-star-fill').addClass('bi-star');
             checkFormValidity();
         });
     }
@@ -121,6 +128,24 @@
     $(document).ready(function() {
         // التحقق من المدخلات بشكل فوري
         $('#fb-name, #fb-experience, #fb-destination').on('input', checkFormValidity);
+        
+        // ربط النجوم التفاعلية
+        $('.rating-star').on('click', function () {
+            const val = parseInt($(this).data('value'));
+            $('#fb-rating').val(val);
+            
+            // تحديث كلاسات النجوم
+            $('.rating-star').each(function () {
+                const starVal = parseInt($(this).data('value'));
+                if (starVal <= val) {
+                    $(this).removeClass('bi-star').addClass('bi-star-fill active');
+                } else {
+                    $(this).removeClass('bi-star-fill active').addClass('bi-star');
+                }
+            });
+            
+            checkFormValidity();
+        });
         
         // ربط الإرسال
         $('#fb-submit').on('click', submitFeedback);
