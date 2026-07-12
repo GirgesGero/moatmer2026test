@@ -30,23 +30,80 @@
     }
 
     /* ─── 2. شريط الفعالية الحية (مضغوط) ─── */
+    function getDayDate(dayNum) {
+        const year = 2026;
+        const dates = {
+            1: { d: 10, m: 8 },
+            2: { d: 11, m: 8 },
+            3: { d: 12, m: 8 },
+            4: { d: 13, m: 8 }
+        };
+        const dt = dates[dayNum];
+        if (!dt) return null;
+        return new Date(year, dt.m - 1, dt.d);
+    }
+
+    function getConferenceState() {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const day1Date = getDayDate(1);
+        const day4Date = getDayDate(4);
+        
+        if (today < day1Date) {
+            const diffTime = Math.abs(day1Date - today);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return { status: 'before', daysRemaining: diffDays };
+        } else if (today > day4Date) {
+            return { status: 'after' };
+        } else {
+            for (let day = 1; day <= 4; day++) {
+                const dDate = getDayDate(day);
+                if (dDate && dDate.getTime() === today.getTime()) {
+                    return { status: 'during', currentDay: day };
+                }
+            }
+        }
+        return { status: 'unknown' };
+    }
+
     function updateLiveActivities() {
-        if (program.length === 0) return;
         var pill = document.getElementById('live-compact');
         if (!pill) return;
 
+        const state = getConferenceState();
+
+        if (state.status === 'before') {
+            pill.style.display = 'flex';
+            pill.className = "live-compact status-before";
+            pill.innerHTML = `
+                <div class="lc-countdown-wrapper">
+                    <span class="lc-badge before"><i class="bi bi-calendar-event"></i> قريباً</span>
+                    <span class="lc-title">ينطلق المؤتمر يوم 10 أغسطس 2026</span>
+                    <span class="lc-time">باقي ${state.daysRemaining} يوم ⏳</span>
+                </div>
+            `;
+            return;
+        }
+
+        if (state.status === 'after') {
+            pill.style.display = 'flex';
+            pill.className = "live-compact status-after";
+            pill.innerHTML = `
+                <div class="lc-countdown-wrapper">
+                    <span class="lc-badge after"><i class="bi bi-check-circle"></i> ختام</span>
+                    <span class="lc-title">انتهى المؤتمر بحمد الله 🕊️</span>
+                    <span class="lc-time">نشوفكم في المؤتمر القادم!</span>
+                </div>
+            `;
+            return;
+        }
+
+        if (program.length === 0) { pill.style.display = 'none'; return; }
+        
         var now    = new Date();
         var nowMin = now.getHours() * 60 + now.getMinutes();
-        var day    = now.getDate();
-        var month  = now.getMonth();
-        var year   = now.getFullYear();
-
-        var dayNum = 1;
-        if (year === 2026 && month === 7) { // 7 = أغسطس
-            if (day === 11)      dayNum = 2;
-            else if (day === 12) dayNum = 3;
-            else if (day >= 13)  dayNum = 4;
-        }
+        var dayNum = state.currentDay || 1;
 
         var parseMin = function(t) {
             if (!t) return 0;
@@ -67,30 +124,42 @@
 
         if (!currentAct && !nextAct) { pill.style.display = 'none'; return; }
         pill.style.display = 'flex';
+        pill.className = "live-compact status-during";
 
-        var set = function(id, val) {
-            var el = document.getElementById(id);
-            if (el) el.textContent = val;
-        };
-
+        var nowHtml = '';
         if (currentAct) {
             var rem = parseMin(currentAct.endTime) - nowMin;
-            set('lp-now-title',     currentAct.title || '—');
-            set('lp-now-remaining', rem > 0 ? 'باقي ' + rem + 'د' : 'تنتهي');
+            var remStr = rem > 0 ? 'متبقي ' + rem + ' د' : 'تنتهي الآن';
+            nowHtml = `
+                <div class="lc-section">
+                    <span class="lc-badge now"><span class="blink-dot"></span> الآن</span>
+                    <span class="lc-title">${currentAct.title}</span>
+                    <span class="lc-time">${remStr}</span>
+                </div>
+            `;
         } else {
-            set('lp-now-title', 'وقت حر 🌴');
-            set('lp-now-remaining', '');
+            nowHtml = `
+                <div class="lc-section">
+                    <span class="lc-badge now-free">🌴 وقت حر</span>
+                    <span class="lc-title">وقت حر أو راحة</span>
+                </div>
+            `;
         }
 
-        var nextWrap = document.getElementById('lp-next-wrap');
-        if (nextAct && nextWrap) {
-            nextWrap.style.display = 'flex';
+        var nextHtml = '';
+        if (nextAct) {
             var diff = parseMin(nextAct.time) - nowMin;
-            set('lp-next-title', nextAct.title || '—');
-            set('lp-next-in',    diff > 0 ? 'بعد ' + diff + 'د' : 'قريباً');
-        } else if (nextWrap) {
-            nextWrap.style.display = 'none';
+            var diffStr = diff > 0 ? 'بعد ' + diff + ' د' : 'قريباً';
+            nextHtml = `
+                <div class="lc-section next-section">
+                    <span class="lc-badge next">بعد</span>
+                    <span class="lc-title">${nextAct.title}</span>
+                    <span class="lc-time">${diffStr}</span>
+                </div>
+            `;
         }
+
+        pill.innerHTML = nowHtml + nextHtml;
     }
 
     updateLiveActivities();
@@ -112,7 +181,9 @@
         { icon:'🛏', title:'التسكين والغرف',       desc:'توزيع الغرف والأسرّة',            href:'accommodation.html' },
         { icon:'🚌', title:'الأتوبيس والمقاعد',   desc:'مقعدك ومشرف الرحلة وزملاءك',     href:'buses.html'         },
         { icon:'🙏', title:'الصلوات والأجبية',    desc:'صلوات باكر والنوم',               href:'prayer.html'        },
-        { icon:'🎮', title:'الألعاب والمسابقات',   desc:'ألعاب XO وذاكرة ومتاهة المؤتمر',href:'games.html'         }
+        { icon:'🎮', title:'الألعاب والمسابقات',   desc:'ألعاب XO وذاكرة ومتاهة المؤتمر',href:'games.html'         },
+        { icon:'💬', title:'شارك رأيك',           desc:'قولنا رأيك في المؤتمر ورشح للرحلة الجاية', href:'feedback.html' },
+        { icon:'👥', title:'المجموعات',           desc:'مجموعتك وزمايلك في المؤتمر',      href:'groups.html'        }
     ];
 
     var activeIndex     = 0;
@@ -148,9 +219,9 @@
 
     function rotateDialTo(index, instant) {
         if (isTransitioning && !instant) return;
-        activeIndex = ((index % 8) + 8) % 8;
+        activeIndex = ((index % 10) + 10) % 10;
 
-        var rotation = -90 - (activeIndex * 45);
+        var rotation = -90 - (activeIndex * 36);
         var ease     = 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)';
 
         if (dialWheel) {

@@ -1091,26 +1091,19 @@ function filterPassengers() {
    تهيئة الصفحة
    ======================================================== */
 $(document).ready(async function() {
-    const hasDraft = loadFromStorage();
-    if (hasDraft) {
+    try {
+        // دائماً نقوم بجلب البيانات الموحدة والمدمجة بمسودة المشتركين من DataService
+        db = await DataService.loadConference();
+        
         populateDropdowns();
         renderStatsBar();
         refreshAll();
         initDragDrop();
         updateSaveIndicator();
-    } else {
-        try {
-            db = await DataService.loadConference();
-            populateDropdowns();
-            renderStatsBar();
-            refreshAll();
-            initDragDrop();
-            updateSaveIndicator();
-        } catch (e) {
-            console.error('Failed to load conference-data.json: ', e);
-            showToast('تعذر تحميل البيانات من الملف المساعد. الرجاء استيراد ملف JSON يدوياً.', 'error');
-            toggleImport();
-        }
+    } catch (e) {
+        console.error('Failed to load conference-data: ', e);
+        showToast('تعذر تحميل البيانات من الملف المساعد. الرجاء استيراد ملف JSON يدوياً.', 'error');
+        toggleImport();
     }
 
     $('.edit-overlay, .add-overlay, .confirm-overlay').on('click', function(e) {

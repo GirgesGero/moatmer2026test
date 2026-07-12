@@ -311,7 +311,7 @@ const ScrollPositionSaver = {
 function highlightCurrentActivity(programArray, options = {}) {
     /*
      * programArray: مصفوفة أنشطة كل منها { time, endTime, id, ... }
-     * time/endTime: "HH:MM" بتوقيت 24 ساعة
+     * options: { currentDay } الفهرس الرقمي لليوم الفعلي للمؤتمر (1, 2, 3, 4)
      */
     if (!Array.isArray(programArray)) return null;
 
@@ -324,20 +324,25 @@ function highlightCurrentActivity(programArray, options = {}) {
     const nowMin = now.getHours() * 60 + now.getMinutes();
 
     let current = null;
+    const currentDay = options.currentDay; // يمكن أن يكون 1، 2، 3، 4، أو null إذا كنا خارج فترة المؤتمر
 
     programArray.forEach(activity => {
         const start = toMin(activity.time);
         const end   = toMin(activity.endTime);
         if (start === null) return;
 
-        const isNow = end !== null
+        // التحقق مما إذا كان النشاط ينتمي لليوم الحالي الفعلي للمؤتمر
+        // إذا لم يتم تمرير currentDay، نعتبر كل الأيام متاحة (لأغراض التطوير أو التوافق)
+        const isTargetDay = currentDay !== undefined ? (activity.day === currentDay) : true;
+
+        const isNow = isTargetDay && (end !== null
             ? (nowMin >= start && nowMin < end)
-            : (nowMin >= start && nowMin < start + 60); // افتراضي ساعة
+            : (nowMin >= start && nowMin < start + 60));
 
         const el = document.getElementById(activity.id);
         if (el) {
             el.classList.toggle('activity-now', isNow);
-            el.classList.toggle('activity-past', !isNow && nowMin >= (end ?? start + 60));
+            el.classList.toggle('activity-past', isTargetDay && !isNow && nowMin >= (end ?? start + 60));
         }
 
         if (isNow) current = activity;

@@ -16,6 +16,69 @@
     let activeFilter = 'all';
     let selectedDay = '1';
     let program = [];
+    let currentConferenceDay = null; // اليوم الرقمي الفعلي للمؤتمر (1, 2, 3, 4)
+    let dataMeta = null; // الميتا المجلوبة من ملف البيانات
+
+    function formatArabicTimeSingle(timeStr) {
+        if (!timeStr) return '';
+        const parts = timeStr.split(':');
+        if (parts.length !== 2) return timeStr;
+        
+        let h = parseInt(parts[0]);
+        const m = parts[1];
+        let ampm = 'ص';
+        
+        if (h >= 12) {
+            ampm = 'م';
+            if (h > 12) h -= 12;
+        } else if (h === 0) {
+            h = 12;
+        }
+        
+        return `${h}:${m} ${ampm}`;
+    }
+
+    function formatArabicTimeRange(startTime, endTime) {
+        const formatTime = (timeStr) => {
+            if (!timeStr) return null;
+            const parts = timeStr.split(':');
+            if (parts.length !== 2) return null;
+            
+            let h = parseInt(parts[0]);
+            const m = parts[1];
+            let ampm = 'ص';
+            
+            if (h >= 12) {
+                ampm = 'م';
+                if (h > 12) h -= 12;
+            } else if (h === 0) {
+                h = 12;
+            }
+            
+            return { formatted: `${h}:${m}`, ampm: ampm };
+        };
+
+        const start = formatTime(startTime);
+        const end = formatTime(endTime);
+
+        if (start && end) {
+            return `
+                <span class="time-prefix">من</span>
+                <span class="time-num">${start.formatted}</span>
+                <span class="time-suffix">${start.ampm}</span>
+                <span class="time-connector">إلى</span>
+                <span class="time-num">${end.formatted}</span>
+                <span class="time-suffix">${end.ampm}</span>
+            `;
+        } else if (start) {
+            return `
+                <span class="time-prefix">الساعة</span>
+                <span class="time-num">${start.formatted}</span>
+                <span class="time-suffix">${start.ampm}</span>
+            `;
+        }
+        return '';
+    }
 
     /* ─── 1. رسم بطاقة نشاط ─── */
     function renderActivity(act) {
@@ -24,7 +87,7 @@
         div.className = `activity-item type-${act.type}`;
         div.id = act.id;
 
-        const timeStr = act.endTime ? `${act.time} – ${act.endTime}` : act.time;
+        const timeStr = formatArabicTimeRange(act.time, act.endTime);
 
         let linkedPage = 'lectures.html';
         if (act.type === 'workshop') {
@@ -42,10 +105,10 @@
                 <i class="bi ${isStarred ? 'bi-star-fill' : 'bi-star'}"></i>
             </button>
             <div class="activity-time">${timeStr}</div>
-            <div class="activity-title"><i class="${t.icon}" style="color:${t.color};margin-left:.4rem;font-size:.85em"></i>${act.title}</div>
+            <div class="activity-title"><i class="${t.icon}" style="color:${t.color};margin-left:.4rem;font-size:.85em"></i>${escapeHTML(act.title)}</div>
             <div class="activity-meta">
-                ${act.place ? `<span class="activity-chip"><i class="bi bi-geo-alt-fill"></i>${act.place}</span>` : ''}
-                ${act.notes ? `<span class="activity-chip"><i class="bi bi-chat-text-fill"></i>${act.notes}</span>` : ''}
+                ${act.place ? `<span class="activity-chip"><i class="bi bi-geo-alt-fill"></i>${escapeHTML(act.place)}</span>` : ''}
+                ${act.notes ? `<span class="activity-chip"><i class="bi bi-chat-text-fill"></i>${escapeHTML(act.notes)}</span>` : ''}
                 ${linkHtml}
             </div>
         `;
@@ -76,6 +139,16 @@
         return div;
     }
 
+    function escapeHTML(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[c]));
+    }
+
     /* ─── 2. رسم كل الأيام ─── */
     function renderAll() {
         [1, 2, 3, 4].forEach(day => {
@@ -101,7 +174,13 @@
         // تنظيف الشارات السابقة
         document.querySelectorAll('.now-badge, .next-badge').forEach(b => b.remove());
         
-        currentActivity = YC.highlightCurrentActivity(program);
+        // إذا كنا خارج أيام المؤتمر، لا نميز أي فقرات بـ "الآن" أو "التالية" في الجدول
+        if (currentConferenceDay === null) {
+            YC.highlightCurrentActivity(program, { currentDay: null });
+            return;
+        }
+        
+        currentActivity = YC.highlightCurrentActivity(program, { currentDay: currentConferenceDay });
 
         // إضافة شارة "الآن" للنشاط الحالي وتفعيل تبويبه
         if (currentActivity) {
@@ -111,18 +190,15 @@
                 badge.className = 'now-badge';
                 badge.innerHTML = '<span class="now-dot"></span> الآن';
                 el.querySelector('.activity-title')?.prepend(badge);
-
-                // تفعيل تبويب اليوم المناسب تلقائياً فقط عند التحميل الأول
-                if (!sessionStorage.getItem('program_loaded')) {
-                    sessionStorage.setItem('program_loaded', 'true');
-                    const dayTab = document.querySelector(`.day-tab[data-day="${currentActivity.day}"]`);
-                    if (dayTab) dayTab.click();
-                }
             }
         }
 
         // حساب وإضافة شارة "التالية" للنشاط التالي لليوم المختار حالياً
         const targetDay = currentActivity ? currentActivity.day : parseInt(selectedDay);
+        
+        // نظهر شارة "التالية" فقط إذا كان التبويب المختار هو اليوم الحالي الفعلي للمؤتمر
+        if (targetDay !== currentConferenceDay) return;
+
         const dayActs = program.filter(a => a.day === targetDay)
             .sort((a, b) => a.time.localeCompare(b.time));
         
@@ -161,8 +237,106 @@
         }
     }
 
+    function getDayDate(dayNum, meta) {
+        if (!meta || !meta.days) return null;
+        const found = meta.days.find(d => d.day === dayNum);
+        if (!found) return null;
+        
+        const year = meta.year || 2026;
+        const [d, m] = found.date.split('/').map(Number);
+        return new Date(year, m - 1, d);
+    }
+
+    function getConferenceState(meta) {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        const day1Date = getDayDate(1, meta);
+        const day4Date = getDayDate(4, meta);
+        
+        if (!day1Date || !day4Date) return { status: 'unknown' };
+        
+        if (today < day1Date) {
+            const diffTime = Math.abs(day1Date - today);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return { status: 'before', daysRemaining: diffDays };
+        } else if (today > day4Date) {
+            return { status: 'after' };
+        } else {
+            for (let day = 1; day <= 4; day++) {
+                const dDate = getDayDate(day, meta);
+                if (dDate && dDate.getTime() === today.getTime()) {
+                    return { status: 'during', currentDay: day };
+                }
+            }
+        }
+        return { status: 'unknown' };
+    }
+
     /* ─── 4. تحديث بطاقة الـ Widget للنشاط الجاري (Live Status) ─── */
     function updateLiveWidget() {
+        const widget = document.getElementById('live-status-widget');
+        if (!widget) return;
+
+        const state = getConferenceState(dataMeta);
+
+        // إعادة تعيين أنماط بادج الحالة الافتراضية
+        const badge = widget.querySelector('.live-badge-now');
+        if (badge) {
+            badge.innerHTML = '<span class="blink-dot"></span> الآن';
+            badge.style.background = '';
+            badge.style.borderColor = '';
+            badge.style.color = '';
+        }
+
+        // الحالة أ: قبل بدء المؤتمر
+        if (state.status === 'before') {
+            widget.style.display = 'block';
+            if (badge) {
+                badge.innerHTML = '⏳ قريباً';
+                badge.style.background = 'rgba(245, 158, 11, 0.15)';
+                badge.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+                badge.style.color = '#fbbf24';
+            }
+            
+            document.getElementById('live-activity-title').innerHTML = `
+                <i class="bi bi-calendar-event-fill me-1" style="color:#fbbf24"></i> المؤتمر لم يبدأ بعد
+            `;
+            document.getElementById('live-time-left').textContent = `ينطلق المؤتمر يوم 10 أغسطس 2026`;
+            document.getElementById('live-progress-percent').textContent = `باقي ${state.daysRemaining} يوم`;
+            document.getElementById('live-progress-bar-fill').style.width = '0%';
+            
+            const nextTeaser = document.getElementById('live-next-teaser');
+            if (nextTeaser) {
+                nextTeaser.style.display = 'flex';
+                document.getElementById('live-next-activity-text').textContent = 'النشاط الأول: التجمع والانطلاق (06:00 ص)';
+            }
+            return;
+        }
+
+        // الحالة ب: بعد انتهاء المؤتمر
+        if (state.status === 'after') {
+            widget.style.display = 'block';
+            if (badge) {
+                badge.innerHTML = '🕊️ ختام';
+                badge.style.background = 'rgba(16, 185, 129, 0.15)';
+                badge.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+                badge.style.color = '#34d399';
+            }
+            
+            document.getElementById('live-activity-title').innerHTML = `
+                <i class="bi bi-check-circle-fill me-1" style="color:#34d399"></i> انتهى المؤتمر بحمد الله
+            `;
+            document.getElementById('live-time-left').textContent = `نشوفكم في المؤتمر القادم!`;
+            document.getElementById('live-progress-percent').textContent = `100%`;
+            document.getElementById('live-progress-bar-fill').style.width = '100%';
+            
+            const nextTeaser = document.getElementById('live-next-teaser');
+            if (nextTeaser) nextTeaser.style.display = 'none';
+            return;
+        }
+
+        // الحالة ج: أثناء المؤتمر (نلتزم باليوم الحالي الفعلي)
         const now = new Date();
         const currentTotalMins = now.getHours() * 60 + now.getMinutes();
 
@@ -172,14 +346,21 @@
             return h * 60 + m;
         };
 
-        // فلترة فعاليات اليوم المختار حالياً
-        const dayActivities = program.filter(a => a.day === parseInt(selectedDay))
+        const todayDay = state.currentDay;
+        const viewingDay = parseInt(selectedDay);
+        
+        // إخفاء كارت البث المباشر للأنشطة إذا كان المستخدم يستعرض جدول يوم آخر غير اليوم الفعلي
+        if (viewingDay !== todayDay) {
+            widget.style.display = 'none';
+            return;
+        }
+
+        const dayActivities = program.filter(a => a.day === todayDay)
             .sort((a, b) => a.time.localeCompare(b.time));
         
         let currentAct = null;
         let nextAct = null;
 
-        // البحث عن النشاط الجاري
         for (let i = 0; i < dayActivities.length; i++) {
             const act = dayActivities[i];
             const start = toMin(act.time);
@@ -192,7 +373,6 @@
             }
         }
 
-        // إذا لم يكن هناك نشاط جاري، نبحث عن القادم اليوم
         if (!currentAct) {
             for (let i = 0; i < dayActivities.length; i++) {
                 const start = toMin(dayActivities[i].time);
@@ -203,16 +383,12 @@
             }
         }
 
-        const widget = document.getElementById('live-status-widget');
-        if (!widget) return;
-
         if (currentAct) {
             widget.style.display = 'block';
             document.getElementById('live-activity-title').innerHTML = `
                 <i class="bi bi-play-circle-fill me-1" style="color:var(--primary-light)"></i> ${currentAct.title}
             `;
             
-            // حساب النسبة المئوية والوقت المتبقي
             const start = toMin(currentAct.time);
             const end = toMin(currentAct.endTime) || (start + 60);
             const duration = end - start;
@@ -234,12 +410,11 @@
             const nextTeaser = document.getElementById('live-next-teaser');
             if (nextAct) {
                 nextTeaser.style.display = 'flex';
-                document.getElementById('live-next-activity-text').textContent = `النشاط التالي: ${nextAct.title} (${nextAct.time})`;
+                document.getElementById('live-next-activity-text').textContent = `النشاط التالي: ${nextAct.title} (${formatArabicTimeSingle(nextAct.time)})`;
             } else {
                 nextTeaser.style.display = 'none';
             }
         } else if (nextAct) {
-            // لا يوجد نشاط جاري حالياً ولكن هناك نشاط قادم اليوم
             widget.style.display = 'block';
             document.getElementById('live-activity-title').textContent = "لا توجد فعاليات جارية حالياً";
             
@@ -259,9 +434,8 @@
 
             const nextTeaser = document.getElementById('live-next-teaser');
             nextTeaser.style.display = 'flex';
-            document.getElementById('live-next-activity-text').textContent = `النشاط القادم: ${nextAct.title} (${nextAct.time})`;
+            document.getElementById('live-next-activity-text').textContent = `النشاط القادم: ${nextAct.title} (${formatArabicTimeSingle(nextAct.time)})`;
         } else {
-            // اليوم انتهى تماماً
             widget.style.display = 'none';
         }
     }
@@ -296,24 +470,66 @@
         });
     }
 
-    /* ─── 6. ربط التبويبات (Days) ─── */
-    document.querySelectorAll('.day-tab').forEach(tab => {
-        tab.addEventListener('click', function () {
-            document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
-            
-            this.classList.add('active');
-            selectedDay = this.dataset.day;
-            
-            const panel = document.getElementById(`prog-panel-day-${selectedDay}`);
-            if (panel) panel.classList.add('active');
-            
-            // تحديث كارت الحالة والفلتر فوراً
-            highlightNow();
-            updateLiveWidget();
-            applyFilter();
-        });
+    /* ─── 6. ربط التبويبات (Days) عن طريق تفويض الأحداث (Vanilla JS) ─── */
+    document.addEventListener('click', function(e) {
+        const tab = e.target.closest('.day-tab');
+        if (!tab) return;
+        
+        document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+        
+        tab.classList.add('active');
+        selectedDay = tab.getAttribute('data-day');
+        
+        const panel = document.getElementById(`prog-panel-day-${selectedDay}`);
+        if (panel) panel.classList.add('active');
+        
+        // تحديث كارت الحالة والفلتر فوراً
+        highlightNow();
+        updateLiveWidget();
+        applyFilter();
     });
+
+    function formatArabicDate(dateStr) {
+        if (!dateStr) return '';
+        const months = {
+            '1': 'يناير', '2': 'فبراير', '3': 'مارس', '4': 'أبريل',
+            '5': 'مايو', '6': 'يونيو', '7': 'يوليو', '8': 'أغسطس',
+            '9': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
+        };
+        const parts = dateStr.split('/');
+        if (parts.length === 2) {
+            const day = parts[0];
+            const month = months[parts[1]] || parts[1];
+            return `${day} ${month}`;
+        }
+        return dateStr;
+    }
+
+    function renderDayTabs(days) {
+        const container = document.querySelector('.day-tabs');
+        if (!container || !days || !days.length) return;
+        
+        const defaultDay = currentConferenceDay || 1;
+        selectedDay = String(defaultDay); // تحديث selectedDay الافتراضي
+        
+        container.innerHTML = days.map(d => {
+            const activeCls = d.day === defaultDay ? 'active' : '';
+            const departureCls = d.day === 4 ? 'day-tab-departure' : '';
+            const labelSub = d.day === 4 ? 'يوم الرحيل ✈️' : d.label;
+            const beautifulDate = formatArabicDate(d.date);
+            return `<button class="day-tab ${activeCls} ${departureCls}" data-day="${d.day}" role="tab">${beautifulDate}<span class="day-tab-sub">${labelSub}</span></button>`;
+        }).join('');
+        
+        // تفعيل لوحة اليوم الافتراضي المناسب وإلغاء البقية
+        document.querySelectorAll('.day-panel').forEach(p => {
+            if (p.id === `prog-panel-day-${defaultDay}`) {
+                p.classList.add('active');
+            } else {
+                p.classList.remove('active');
+            }
+        });
+    }
 
     /* ─── 7. ربط الفلاتر (Filter Pills) ─── */
     document.querySelectorAll('.filter-pill').forEach(pill => {
@@ -341,24 +557,65 @@
         }
     });
 
-    // تحميل البيانات وإطلاق التطبيق
-    DataService.loadConference().then(data => {
-        program = data.program || [];
-        
-        // تشغيل الرسم الأولي
-        renderAll();
-        
-        // تأخير التمييز ليعمل الفلتر وحفظ التبويب
-        setTimeout(() => {
-            highlightNow();
-            updateLiveWidget();
-            applyFilter();
-        }, 200);
+    function startApp() {
+        if (!window.DataService) {
+            setTimeout(startApp, 50);
+            return;
+        }
 
-        // تحديثات الحالة الحية كل 10 ثواني لمزامنة أفضل لـ Progress Bar والجدول
-        setInterval(() => {
-            updateLiveWidget();
-            highlightNow();
-        }, 10000);
-    });
+        DataService.loadConference().then(data => {
+            program = data.program || [];
+            dataMeta = data.meta;
+            
+            // حساب اليوم الحالي الفعلي وتحديد التبويب الافتراضي
+            if (dataMeta) {
+                const state = getConferenceState(dataMeta);
+                if (state.status === 'during') {
+                    currentConferenceDay = state.currentDay;
+                } else if (state.status === 'after') {
+                    currentConferenceDay = 4; // اليوم الأخير
+                } else {
+                    currentConferenceDay = null; // قبل المؤتمر
+                }
+            }
+
+            // رسم تابات الأيام ديناميكياً من الميتا (تتأثر باليوم الحالي الفعلي)
+            if (dataMeta && dataMeta.days) {
+                renderDayTabs(dataMeta.days);
+                
+                // تحديث العنوان الفرعي بذكر تاريخ ونطاق المؤتمر
+                const subtitle = document.querySelector('.page-header-sub');
+                if (subtitle && dataMeta.year) {
+                    const firstDate = formatArabicDate(dataMeta.days[0].date);
+                    const lastDate = formatArabicDate(dataMeta.days[dataMeta.days.length - 1].date);
+                    subtitle.textContent = `مؤتمر الشباب ${dataMeta.year} — من ${firstDate} إلى ${lastDate}`;
+                }
+            }
+            
+            // تشغيل الرسم الأولي لجميع الأيام
+            renderAll();
+            
+            // تأخير التمييز ليعمل الفلتر وحفظ التبويب
+            setTimeout(() => {
+                highlightNow();
+                updateLiveWidget();
+                applyFilter();
+            }, 200);
+
+            // تحديثات الحالة الحية كل 10 ثواني لمزامنة أفضل لـ Progress Bar والجدول
+            setInterval(() => {
+                updateLiveWidget();
+                highlightNow();
+            }, 10000);
+        }).catch(err => {
+            console.error('Failed to load conference-data in program page:', err);
+        });
+    }
+
+    // إطلاق التطبيق عند جاهزية الصفحة
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startApp);
+    } else {
+        startApp();
+    }
 })();

@@ -96,6 +96,16 @@
                             <stop offset="85%" stop-color="#7c3aed" stop-opacity="0.28" />
                             <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.45" />
                         </radialGradient>
+                        <radialGradient id="grad-feedback" cx="150" cy="150" r="140" gradientUnits="userSpaceOnUse">
+                            <stop offset="58%" stop-color="#10b981" stop-opacity="0.05" />
+                            <stop offset="85%" stop-color="#10b981" stop-opacity="0.28" />
+                            <stop offset="100%" stop-color="#10b981" stop-opacity="0.45" />
+                        </radialGradient>
+                        <radialGradient id="grad-groups" cx="150" cy="150" r="140" gradientUnits="userSpaceOnUse">
+                            <stop offset="58%" stop-color="#4f46e5" stop-opacity="0.05" />
+                            <stop offset="85%" stop-color="#4f46e5" stop-opacity="0.28" />
+                            <stop offset="100%" stop-color="#4f46e5" stop-opacity="0.45" />
+                        </radialGradient>
 
                         <!-- Glow Filter for active segment -->
                         <filter id="svg-glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -104,55 +114,67 @@
                         </filter>
                     </defs>
 
-                    <!-- Rotating Wheel Group -->
+                    <!-- Rotating Wheel Group (10 Sections, 36 degrees each) -->
                     <g id="dial-wheel" class="dial-wheel">
                         <!-- Sector 0: Lectures (Cyan) -->
                         <g class="dial-node" data-index="0" data-href="lectures.html" transform="rotate(270, 150, 150)">
-                            <path class="svg-sector sector-cyan" d="M 279.34 96.42 A 140 140 0 0 1 279.34 203.58 L 228.53 182.53 A 85 85 0 0 0 228.53 117.47 Z" fill="url(#grad-lectures)" stroke="#0284c7" stroke-width="1.2" stroke-opacity="0.75" />
+                            <path class="svg-sector sector-cyan" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-lectures)" stroke="#0284c7" stroke-width="1.2" stroke-opacity="0.75" />
                             <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">🎤</text>
                             <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">المحاضرات</text>
                         </g>
                         <!-- Sector 1: Workshops (Teal) -->
-                        <g class="dial-node" data-index="1" data-href="workshops.html" transform="rotate(315, 150, 150)">
-                            <path class="svg-sector sector-teal" d="M 279.34 96.42 A 140 140 0 0 1 279.34 203.58 L 228.53 182.53 A 85 85 0 0 0 228.53 117.47 Z" fill="url(#grad-workshops)" stroke="#0d9488" stroke-width="1.2" stroke-opacity="0.75" />
+                        <g class="dial-node" data-index="1" data-href="workshops.html" transform="rotate(306, 150, 150)">
+                            <path class="svg-sector sector-teal" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-workshops)" stroke="#0d9488" stroke-width="1.2" stroke-opacity="0.75" />
                             <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">🛠</text>
                             <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">ورش العمل</text>
                         </g>
                         <!-- Sector 2: Hymns (Gold) -->
-                        <g class="dial-node" data-index="2" data-href="hymns.html" transform="rotate(0, 150, 150)">
-                            <path class="svg-sector sector-gold" d="M 279.34 96.42 A 140 140 0 0 1 279.34 203.58 L 228.53 182.53 A 85 85 0 0 0 228.53 117.47 Z" fill="url(#grad-hymns)" stroke="#d97706" stroke-width="1.2" stroke-opacity="0.75" />
+                        <g class="dial-node" data-index="2" data-href="hymns.html" transform="rotate(342, 150, 150)">
+                            <path class="svg-sector sector-gold" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-hymns)" stroke="#d97706" stroke-width="1.2" stroke-opacity="0.75" />
                             <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">🎵</text>
                             <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">الترانيم</text>
                         </g>
                         <!-- Sector 3: Program (Orange) -->
-                        <g class="dial-node" data-index="3" data-href="program.html" transform="rotate(45, 150, 150)">
-                            <path class="svg-sector sector-orange" d="M 279.34 96.42 A 140 140 0 0 1 279.34 203.58 L 228.53 182.53 A 85 85 0 0 0 228.53 117.47 Z" fill="url(#grad-program)" stroke="#ea580c" stroke-width="1.2" stroke-opacity="0.75" />
+                        <g class="dial-node" data-index="3" data-href="program.html" transform="rotate(18, 150, 150)">
+                            <path class="svg-sector sector-orange" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-program)" stroke="#ea580c" stroke-width="1.2" stroke-opacity="0.75" />
                             <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">🗓</text>
                             <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">البرنامج</text>
                         </g>
                         <!-- Sector 4: Accommodation (Magenta) -->
-                        <g class="dial-node" data-index="4" data-href="accommodation.html" transform="rotate(90, 150, 150)">
-                            <path class="svg-sector sector-magenta" d="M 279.34 96.42 A 140 140 0 0 1 279.34 203.58 L 228.53 182.53 A 85 85 0 0 0 228.53 117.47 Z" fill="url(#grad-accomm)" stroke="#c026d3" stroke-width="1.2" stroke-opacity="0.75" />
+                        <g class="dial-node" data-index="4" data-href="accommodation.html" transform="rotate(54, 150, 150)">
+                            <path class="svg-sector sector-magenta" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-accomm)" stroke="#c026d3" stroke-width="1.2" stroke-opacity="0.75" />
                             <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">🛏</text>
                             <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">التسكين</text>
                         </g>
                         <!-- Sector 5: Buses (Blue) -->
-                        <g class="dial-node" data-index="5" data-href="buses.html" transform="rotate(135, 150, 150)">
-                            <path class="svg-sector sector-blue" d="M 279.34 96.42 A 140 140 0 0 1 279.34 203.58 L 228.53 182.53 A 85 85 0 0 0 228.53 117.47 Z" fill="url(#grad-buses)" stroke="#2563eb" stroke-width="1.2" stroke-opacity="0.75" />
+                        <g class="dial-node" data-index="5" data-href="buses.html" transform="rotate(90, 150, 150)">
+                            <path class="svg-sector sector-blue" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-buses)" stroke="#2563eb" stroke-width="1.2" stroke-opacity="0.75" />
                             <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">🚌</text>
                             <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">الأتوبيسات</text>
                         </g>
                         <!-- Sector 6: Prayer (Pink/Red) -->
-                        <g class="dial-node" data-index="6" data-href="prayer.html" transform="rotate(180, 150, 150)">
-                            <path class="svg-sector sector-pink" d="M 279.34 96.42 A 140 140 0 0 1 279.34 203.58 L 228.53 182.53 A 85 85 0 0 0 228.53 117.47 Z" fill="url(#grad-prayer)" stroke="#db2777" stroke-width="1.2" stroke-opacity="0.75" />
+                        <g class="dial-node" data-index="6" data-href="prayer.html" transform="rotate(126, 150, 150)">
+                            <path class="svg-sector sector-pink" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-prayer)" stroke="#db2777" stroke-width="1.2" stroke-opacity="0.75" />
                             <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">🙏</text>
                             <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">الصلوات</text>
                         </g>
                         <!-- Sector 7: Games (Purple) -->
-                        <g class="dial-node" data-index="7" data-href="games.html" transform="rotate(225, 150, 150)">
-                            <path class="svg-sector sector-purple" d="M 279.34 96.42 A 140 140 0 0 1 279.34 203.58 L 228.53 182.53 A 85 85 0 0 0 228.53 117.47 Z" fill="url(#grad-games)" stroke="#7c3aed" stroke-width="1.2" stroke-opacity="0.75" />
+                        <g class="dial-node" data-index="7" data-href="games.html" transform="rotate(162, 150, 150)">
+                            <path class="svg-sector sector-purple" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-games)" stroke="#7c3aed" stroke-width="1.2" stroke-opacity="0.75" />
                             <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">🎮</text>
                             <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">الألعاب</text>
+                        </g>
+                        <!-- Sector 8: Feedback (Emerald) -->
+                        <g class="dial-node" data-index="8" data-href="feedback.html" transform="rotate(198, 150, 150)">
+                            <path class="svg-sector sector-emerald" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-feedback)" stroke="#10b981" stroke-width="1.2" stroke-opacity="0.75" />
+                            <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">💬</text>
+                            <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">شارك رأيك</text>
+                        </g>
+                        <!-- Sector 9: Groups (Indigo) -->
+                        <g class="dial-node" data-index="9" data-href="groups.html" transform="rotate(234, 150, 150)">
+                            <path class="svg-sector sector-indigo" d="M 283.15 106.74 A 140 140 0 0 1 283.15 193.26 L 230.84 176.27 A 85 85 0 0 0 230.84 123.73 Z" fill="url(#grad-groups)" stroke="#4f46e5" stroke-width="1.2" stroke-opacity="0.75" />
+                            <text x="270" y="150" transform="rotate(90, 270, 150)" class="svg-icon">👥</text>
+                            <text x="242" y="150" transform="rotate(90, 242, 150)" class="svg-label">المجموعات</text>
                         </g>
                     </g>
 
@@ -228,6 +250,8 @@
                 <span class="dial-dot"        data-index="5" role="tab"></span>
                 <span class="dial-dot"        data-index="6" role="tab"></span>
                 <span class="dial-dot"        data-index="7" role="tab"></span>
+                <span class="dial-dot"        data-index="8" role="tab"></span>
+                <span class="dial-dot"        data-index="9" role="tab"></span>
             </div>
             <div class="dial-swipe-hint" aria-hidden="true">
                 <i class="bi bi-hand-index-thumb"></i> اسحب للتنقل

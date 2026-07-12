@@ -580,91 +580,8 @@ const DESTINATION = {
     departure: 'كنيسة مارمرقس الرسول بالمنشية'
 };
 
-// ========== قائمة مسار المؤتمر الجانبية (Slide-out Menu) ==========
-let routeMenuOpen = false;
+// ========== تهيئة وإعدادات نظام خريطة المسار المدمجة ==========
 let mapIframeLoaded = false;
-
-function openRouteMenu() {
-    routeMenuOpen = true;
-    $('#route-menu').addClass('open');
-    $('#route-menu-overlay').addClass('show');
-    $('#nav-menu-btn').addClass('active');
-    document.body.style.overflow = 'hidden'; // منع الـ scroll
-}
-
-function closeRouteMenu() {
-    routeMenuOpen = false;
-    $('#route-menu').removeClass('open');
-    $('#route-menu-overlay').removeClass('show');
-    $('#nav-menu-btn').removeClass('active');
-    document.body.style.overflow = ''; // إعادة الـ scroll
-}
-
-// زر Menu في الـ Navbar
-$(document).on('click', '#nav-menu-btn', function() {
-    if (routeMenuOpen) {
-        closeRouteMenu();
-    } else {
-        openRouteMenu();
-    }
-});
-
-// زر الإغلاق
-$('#route-menu-close').on('click', function() {
-    closeRouteMenu();
-});
-
-// الضغط على الـ overlay للإغلاق
-$('#route-menu-overlay').on('click', function() {
-    closeRouteMenu();
-});
-
-// زر Escape للإغلاق
-$(document).on('keydown', function(e) {
-    if (e.key === 'Escape' && routeMenuOpen) {
-        closeRouteMenu();
-    }
-});
-
-// منع إغلاق القائمة عند الضغط داخلها
-$('#route-menu').on('click', function(e) {
-    e.stopPropagation();
-});
-
-// ========== القوائم الفرعية القابلة للتوسيع ==========
-// تبديل القسم الفرعي (فتح/إغلاق)
-function toggleMenuSection(toggleId, subId, arrowId) {
-    const $sub = $('#' + subId);
-    const $arrow = $('#' + arrowId);
-
-    if ($sub.hasClass('expanded')) {
-        $sub.removeClass('expanded');
-        $arrow.removeClass('expanded');
-    } else {
-        $sub.addClass('expanded');
-        $arrow.addClass('expanded');
-
-        // تحميل iframe للخريطة + طلب الموقع الجغرافي عند أول فتح فقط (مش تلقائي عند تحميل الصفحة)
-        if (subId === 'map-sub-content' && !mapIframeLoaded) {
-            const $iframe = $sub.find('.map-embed iframe');
-            if ($iframe.length && $iframe.attr('data-src')) {
-                $iframe.attr('src', $iframe.attr('data-src'));
-                mapIframeLoaded = true;
-            }
-            tryGetUserLocation();
-        }
-    }
-}
-
-// قسم الخريطة
-$('#menu-map-toggle').on('click', function() {
-    toggleMenuSection('menu-map-toggle', 'map-sub-content', 'map-expand-arrow');
-});
-
-// قسم الألعاب
-$('#menu-games-toggle').on('click', function() {
-    toggleMenuSection('menu-games-toggle', 'games-sub-content', 'games-expand-arrow');
-});
 
 // إنشاء رابط الاتجاهات الديناميكي
 function getDirectionsUrl() {
@@ -691,6 +608,7 @@ function initMapLinks() {
         $locBtn.attr('href', getPlaceUrl());
     }
 }
+
 // محاولة الحصول على الموقع الحالي للمستخدم لعرض المسافة
 function tryGetUserLocation() {
     if (!navigator.geolocation) return;
@@ -707,7 +625,7 @@ function tryGetUserLocation() {
                 Math.round(distance * 1000) + ' متر' : 
                 distance.toFixed(1) + ' كم';
             
-            // إضافة معلومات المسافة داخل القائمة الجانبية
+            // إضافة معلومات المسافة داخل الكارت المدمج
             const $distanceInfo = $(`<div class="map-distance-info">
                 <i class="bi bi-geo-alt-fill"></i>
                 <span>أنت على بعد ${distanceText} من الوجهة</span>
@@ -726,7 +644,6 @@ function tryGetUserLocation() {
             }
         }
     }, function() {
-        // المستخدم لم يسمح بالوصول للموقع - لا مشكلة
         console.log('لم يتم السماح بالوصول للموقع');
     }, {
         enableHighAccuracy: false,
@@ -747,119 +664,32 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-// تهيئة نظام الخرائط
 $(document).ready(function() {
     initMapLinks();
-    // ملاحظة: tryGetUserLocation() بقت تتنادى بس عند فتح قسم الخريطة (toggleMenuSection)
-    // بدل ما تتنادى تلقائي هنا وتظهر popup إذن الموقع فور فتح الصفحة
-});
-
-// ========== نظام الأسئلة ==========
-function showQuestionModal() {
-    $('#question-modal').addClass('show');
-    $('#fb-name').trigger('focus');
-}
-
-function closeQuestionModal() {
-    $('#question-modal').removeClass('show');
-}
-
-$('#question-modal').on('click', function(e) {
-    if (e.target === this) closeQuestionModal();
-});
-
-function checkFormValidity() {
-    const isValid = $('#fb-destination').val().trim() !== '' && $('#fb-name').val().trim() !== '';
-    $('#fb-submit').prop('disabled', !isValid);
-}
-
-$('#fb-destination, #fb-name').on('input', checkFormValidity);
-
-function getDeviceInfo() {
-    const userAgent = navigator.userAgent;
-    let deviceType = 'Unknown';
-    if (/iPhone/i.test(userAgent)) deviceType = 'iPhone';
-    else if (/iPad/i.test(userAgent)) deviceType = 'iPad';
-    else if (/Android/i.test(userAgent)) deviceType = /Mobile/i.test(userAgent) ? 'Android Phone' : 'Android Tablet';
-    else if (/Windows Phone/i.test(userAgent)) deviceType = 'Windows Phone';
-    else if (/Mac/i.test(userAgent)) deviceType = 'Mac';
-    else if (/Windows/i.test(userAgent)) deviceType = 'Windows PC';
-    else if (/Linux/i.test(userAgent)) deviceType = 'Linux PC';
-
-    let osInfo = 'Unknown OS', browserInfo = 'Unknown Browser';
-    if (/Android/i.test(userAgent)) { const v = userAgent.match(/Android\s([\d.]+)/); osInfo = v ? `Android ${v[1]}` : 'Android'; }
-    if (/iPhone|iPad/i.test(userAgent)) { const v = userAgent.match(/OS\s([\d_]+)/); osInfo = v ? `iOS ${v[1].replace(/_/g, '.')}` : 'iOS'; }
-    if (/Chrome/i.test(userAgent) && !/Edge/i.test(userAgent)) browserInfo = 'Chrome';
-    else if (/Safari/i.test(userAgent) && !/Chrome/i.test(userAgent)) browserInfo = 'Safari';
-    else if (/Firefox/i.test(userAgent)) browserInfo = 'Firefox';
-    else if (/Edge/i.test(userAgent)) browserInfo = 'Edge';
-
-    const now = new Date();
-    return { deviceType, os: osInfo, browser: browserInfo, userAgent, time: now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }), date: now.toLocaleDateString('ar-EG') };
-}
-
-function submitFeedback() {
-    const destination = $('#fb-destination').val().trim();
-    const name = $('#fb-name').val().trim();
-
-    if (!destination || !name) { alert('لو سمحت كمّل كل البيانات!'); return; }
-
-    const deviceInfo = getDeviceInfo();
-    const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfw4IwP36zSLoYRO5k5YKCkC7BMcnxmr3emWVtMZr-QDF52Fw/formResponse';
-
-    $.ajax({
-        url: formUrl,
-        method: 'POST',
-        data: {
-            'entry.216982914': destination,
-            'entry.1430254715': name,
-            'entry.2017420717': `${deviceInfo.date} ${deviceInfo.time}`,
-            'entry.661154536': `${deviceInfo.deviceType} - ${deviceInfo.os} - ${deviceInfo.browser}`
-        },
-        dataType: 'xml',
-        crossDomain: true
-    }).always(function() {
-        showSuccessCelebration();
-        $('#fb-destination').val('');
-        $('#fb-name').val('');
+    
+    // قسم خريطة المسار المدمجة بالصفحة
+    $('#map-card-toggle').on('click', function() {
+        const $body = $('#map-card-content');
+        const $arrow = $('#map-toggle-arrow');
+        const $header = $(this);
+        
+        $body.slideToggle(300, function() {
+            const isVisible = $body.is(':visible');
+            $header.toggleClass('expanded', isVisible);
+            
+            if (isVisible && !mapIframeLoaded) {
+                const $iframe = $body.find('.map-embed iframe');
+                if ($iframe.length && $iframe.attr('data-src')) {
+                    $iframe.attr('src', $iframe.attr('data-src'));
+                    mapIframeLoaded = true;
+                }
+                tryGetUserLocation();
+            }
+        });
     });
-}
+});
 
-function showSuccessCelebration() {
-    closeQuestionModal();
-    const $celebration = $('#success-celebration');
-    $celebration.addClass('show');
-    createConfetti();
-    setTimeout(function() {
-        $celebration.css({ transition: 'all 0.5s ease', opacity: 0, transform: 'translate(-50%, -50%) scale(0.5)' });
-        setTimeout(function() {
-            $celebration.removeClass('show').css({ opacity: '', transform: '', transition: '' });
-        }, 500);
-    }, 3000);
-}
-
-function createConfetti() {
-    const colors = ['#06b6d4', '#10b981', '#8b5cf6', '#f59e0b', '#22d3ee', '#34d399', '#fbbf24', '#a78bfa'];
-    const shapes = ['50%', '3px', '0']; // circle, rounded square, square
-    for (let i = 0; i < 60; i++) {
-        setTimeout(function() {
-            const $confetti = $('<div class="confetti"></div>');
-            const shape = shapes[Math.floor(Math.random() * shapes.length)];
-            const size = 6 + Math.random() * 10;
-            $confetti.css({
-                left: Math.random() * 100 + 'vw',
-                backgroundColor: colors[Math.floor(Math.random() * colors.length)],
-                width: size + 'px',
-                height: size + 'px',
-                borderRadius: shape,
-                animationDuration: (2 + Math.random() * 3) + 's',
-                animationDelay: Math.random() * 0.5 + 's'
-            });
-            $('body').append($confetti);
-            setTimeout(function() { $confetti.remove(); }, 5000);
-        }, i * 25);
-    }
-}
+// تم حذف نظام الأسئلة المحلي ونقله لصفحة feedback.html المستقلة.
 
 // ========== عداد الوقت ==========
 const $countdownBar = $('#countdown-bar');

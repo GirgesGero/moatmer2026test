@@ -26,18 +26,22 @@ class DataService {
                 return res.json();
             })
             .then(data => {
-                this.cachedData = data;
-                // لا نُعيد الكتابة على window.conferenceData إذا كانت مسودة localStorage
-                // موجودة — لأن manage-passengers.js يضع نسخة أحدث هناك
-                const hasDraft = (() => {
-                    try {
-                        const s = localStorage.getItem('conference_db_draft');
-                        return !!(s && JSON.parse(s)?.db?.participants);
-                    } catch (e) { return false; }
-                })();
-                if (!hasDraft) {
-                    window.conferenceData = data;
+                // دمج مسودة المتصفح إن وجدت للحفاظ على تعديلات المشتركين وتوزيعاتهم دون الكتابة فوق بقية البيانات الثابتة الجديدة
+                try {
+                    const saved = localStorage.getItem('conference_db_draft');
+                    if (saved) {
+                        const draft = JSON.parse(saved);
+                        if (draft && draft.db && Array.isArray(draft.db.participants)) {
+                            // نستبدل فقط مصفوفة المشاركين بتعديلاتها
+                            data.participants = draft.db.participants;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('DataService: فشل دمج مسودة المشتركين من localStorage:', e);
                 }
+
+                this.cachedData = data;
+                window.conferenceData = data;
                 return data;
             })
             .catch(err => {
