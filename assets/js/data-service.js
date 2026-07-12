@@ -54,12 +54,17 @@ class DataService {
                     const saved = localStorage.getItem('conference_db_draft');
                     if (saved) {
                         const draft = JSON.parse(saved);
-                        if (draft && draft.db && Array.isArray(draft.db.participants)) {
-                            dataCopy.participants = draft.db.participants;
+                        if (draft && draft.db) {
+                            if (Array.isArray(draft.db.participants)) {
+                                dataCopy.participants = draft.db.participants;
+                            }
+                            if (Array.isArray(draft.db.groups)) {
+                                dataCopy.groups = draft.db.groups;
+                            }
                         }
                     }
                 } catch (e) {
-                    console.warn('DataService: فشل دمج مسودة المشتركين من localStorage:', e);
+                    console.warn('DataService: فشل دمج مسودة البيانات من localStorage:', e);
                 }
 
                 this.cachedData = dataCopy;

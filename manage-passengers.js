@@ -581,9 +581,22 @@ function renderGroupsBoard() {
             ondragover="event.preventDefault(); this.classList.add('drag-over')" 
             ondragleave="this.classList.remove('drag-over')"
             ondrop="this.classList.remove('drag-over'); onDropInGroup(event, '${g.id}')">
-            <div class="group-column-title">
-                <span>${escapeHTML(g.name)}</span>
-                <span class="count-badge">${members.length}</span>
+            <div class="group-column-title" style="flex-direction: column; align-items: stretch; gap: 6px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <span style="font-weight: 800;">${escapeHTML(g.name)}</span>
+                    <span class="count-badge">${members.length}</span>
+                </div>
+                ${g.id !== 'none' ? `
+                <div class="group-score-control" style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px; background: rgba(0,0,0,0.18); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                    <span style="font-size: 0.72rem; color: var(--text-muted);"><i class="bi bi-trophy text-warning me-1"></i> سكور التحدي:</span>
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <input type="number" class="group-score-input" min="0" max="100" value="${g.score || 0}" 
+                            style="width: 44px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #fbbf24; border-radius: 6px; text-align: center; font-size: 0.78rem; padding: 1px 3px; font-weight: 800;"
+                            onchange="updateGroupScore('${g.id}', this.value)">
+                        <span style="font-size: 0.72rem; color: var(--text-muted);">%</span>
+                    </div>
+                </div>
+                ` : ''}
             </div>
             ${g.id !== 'none' ? `<div class="group-column-add" onclick="openAddModalForGroup('${g.id}')"><i class="bi bi-plus-lg me-1"></i> إضافة للمجموعة</div>` : ''}
             <div class="group-members-list">
