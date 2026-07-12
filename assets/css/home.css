@@ -8,7 +8,7 @@
     --navbar-h:      56px;
     --bottom-nav-h:  64px;
 
-    --dial-size:         115vw;
+    --dial-size:         min(115vw, 65vh);
     --dial-radius:       calc(var(--dial-size) / 2 - 44px);
     --dial-right-offset: calc(-1 * var(--dial-size) / 2 + 22px);
 
