@@ -2370,6 +2370,7 @@ body {
         0 15px 30px rgba(0, 0, 0, 0.4),
         0 0 20px var(--rank-glow);
     position: relative;
+    overflow: visible !important;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .podium-card-panel:hover {
@@ -2405,6 +2406,7 @@ body {
     justify-content: center;
     margin-bottom: 8px;
     margin-top: 10px;
+    overflow: visible !important;
 }
 .podium-card-panel.first .hexagon-wrap {
     width: 74px;
@@ -2416,8 +2418,9 @@ body {
     position: absolute;
     width: 108px;
     height: 108px;
-    top: -24px;
-    left: -21px;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
     pointer-events: none;
     z-index: 0;
 }
@@ -2679,6 +2682,105 @@ body {
     color: #fff;
     font-family: 'Outfit', sans-serif;
     box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* التنسيق المتجاوب لبطاقات الصدارة على الهواتف */
+@media (max-width: 480px) {
+    .leaderboard-container {
+        margin: 1rem 0.5rem 1.2rem;
+        padding: 16px 8px 14px;
+    }
+    .leaderboard-podium {
+        gap: 6px;
+        padding: 0;
+    }
+    .podium-card-panel {
+        padding: 12px 4px 10px;
+    }
+    .podium-card-panel.first {
+        min-height: 250px;
+    }
+    .podium-card-panel.second, .podium-card-panel.third {
+        min-height: 220px;
+    }
+    .hexagon-wrap {
+        width: 50px;
+        height: 56px;
+        margin-bottom: 6px;
+        margin-top: 6px;
+    }
+    .podium-card-panel.first .hexagon-wrap {
+        width: 58px;
+        height: 64px;
+        margin-top: 10px;
+    }
+    .hexagon-badge {
+        font-size: 1.1rem;
+        top: -12px;
+    }
+    .podium-card-panel.first .hexagon-badge {
+        font-size: 1.3rem;
+        top: -15px;
+    }
+    .hexagon {
+        font-size: 1.05rem;
+    }
+    .podium-card-panel.first .hexagon {
+        font-size: 1.2rem;
+    }
+    .laurel-wreath {
+        width: 88px;
+        height: 88px;
+        top: -14px;
+    }
+    .podium-ribbon {
+        font-size: 0.65rem;
+        padding: 2px 0;
+        margin: 6px -6px 8px;
+        width: calc(100% + 12px);
+    }
+    .podium-card-panel.first .podium-ribbon {
+        font-size: 0.72rem;
+        padding: 3px 0;
+    }
+    .progress-ring-wrap {
+        width: 52px;
+        height: 52px;
+        margin-bottom: 8px;
+    }
+    .progress-ring-inner {
+        width: 44px;
+        height: 44px;
+    }
+    .progress-percent {
+        font-size: 0.72rem;
+    }
+    .podium-card-panel.first .progress-ring-wrap {
+        width: 60px;
+        height: 60px;
+    }
+    .podium-card-panel.first .progress-ring-inner {
+        width: 50px;
+        height: 50px;
+    }
+    .podium-card-panel.first .progress-percent {
+        font-size: 0.8rem;
+    }
+    .progress-lbl {
+        font-size: 0.45rem;
+    }
+    .podium-stars-row {
+        gap: 0.2px;
+        margin-bottom: 6px;
+    }
+    .star-icon {
+        font-size: 0.48rem;
+    }
+    .podium-pill-label {
+        padding: 2px 6px;
+        font-size: 0.52rem;
+        border-radius: 8px;
+    }
 }
 
 
