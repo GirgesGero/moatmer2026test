@@ -26,10 +26,10 @@
         
         let h = parseInt(parts[0]);
         const m = parts[1];
-        let ampm = 'ص';
+        let ampm = 'am';
         
         if (h >= 12) {
-            ampm = 'م';
+            ampm = 'pm';
             if (h > 12) h -= 12;
         } else if (h === 0) {
             h = 12;
@@ -46,10 +46,10 @@
             
             let h = parseInt(parts[0]);
             const m = parts[1];
-            let ampm = 'ص';
+            let ampm = 'am';
             
             if (h >= 12) {
-                ampm = 'م';
+                ampm = 'pm';
                 if (h > 12) h -= 12;
             } else if (h === 0) {
                 h = 12;

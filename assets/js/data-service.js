@@ -28,14 +28,18 @@ class DataService {
             try {
                 const parsed = JSON.parse(cachedStatic);
                 const hasScores = parsed && parsed.groups && parsed.groups.every(g => typeof g.score !== 'undefined');
-                if (hasScores) {
+                const hasNewWorkshops = parsed && parsed.workshops && parsed.workshops.some(w => w.title && w.title.includes('فك الشفرة'));
+                const hasNewProgram = parsed && parsed.program && parsed.program.some(p => p.day === 4);
+                
+                if (hasScores && hasNewWorkshops && hasNewProgram) {
                     staticDataPromise = Promise.resolve(parsed);
                 }
             } catch(e) {}
         }
         
         if (!staticDataPromise) {
-            staticDataPromise = fetch(url)
+            const busterUrl = `${url}?v=${Date.now()}`;
+            staticDataPromise = fetch(busterUrl)
                 .then(res => {
                     if (!res.ok) throw new Error('فشل جلب ملف البيانات: ' + res.status);
                     return res.json();

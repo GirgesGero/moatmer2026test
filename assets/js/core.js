@@ -10,7 +10,7 @@
     if (window.DataService) return;
     const prefix = location.pathname.includes('/pages/') ? '../' : '';
     var s = document.createElement('script');
-    s.src = prefix + 'assets/js/data-service.js';
+    s.src = prefix + 'assets/js/data-service.js?v=2.6';
     s.async = false;
     s.defer = false;
     document.head ? document.head.appendChild(s) : document.write('<script src="' + s.src + '"></script>');
