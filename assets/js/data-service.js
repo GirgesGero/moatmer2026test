@@ -30,8 +30,9 @@ class DataService {
                 const hasScores = parsed && parsed.groups && parsed.groups.every(g => typeof g.score !== 'undefined');
                 const hasNewWorkshops = parsed && parsed.workshops && parsed.workshops.some(w => w.title && w.title.includes('فك الشفرة'));
                 const hasNewProgram = parsed && parsed.program && parsed.program.some(p => p.day === 4);
+                const has12hWorkshops = parsed && parsed.workshops && parsed.workshops.some(w => w.time && (w.time.includes('pm') || w.time.includes('am')));
                 
-                if (hasScores && hasNewWorkshops && hasNewProgram) {
+                if (hasScores && hasNewWorkshops && hasNewProgram && has12hWorkshops) {
                     staticDataPromise = Promise.resolve(parsed);
                 }
             } catch(e) {}

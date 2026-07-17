@@ -77,22 +77,24 @@
             transform: translateX(-3px);
         }
         .objective-num {
-            width: 28px;
-            height: 28px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background: rgba(251, 113, 133, 0.15);
+            background: rgba(251, 113, 133, 0.2);
             color: #fb7185;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.85rem;
-            font-weight: 800;
-            border: 1px solid rgba(251, 113, 133, 0.25);
+            font-size: 1.1rem;
+            font-weight: 900;
+            border: 1px solid rgba(251, 113, 133, 0.35);
+            flex-shrink: 0;
         }
         .objective-text {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: rgba(255,255,255,0.9);
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: #ffffff;
+            line-height: 1.4;
         }
         .practical-box {
             background: linear-gradient(135deg, rgba(6, 182, 212, 0.05) 0%, rgba(6, 182, 212, 0.01) 100%);
@@ -110,6 +112,99 @@
             position: absolute;
             top: 0; left: 0; bottom: 0; width: 4px;
             background: #06b6d4;
+        }
+        
+        /* تنسيقات العداد التنازلي والمهام التفاعلية للورش */
+        .ws-countdown-wrap {
+            background: rgba(251, 191, 36, 0.04);
+            border: 1px dashed rgba(251, 191, 36, 0.25);
+            border-radius: 18px;
+            padding: 1.25rem;
+            text-align: center;
+            margin-top: 1rem;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(251, 191, 36, 0.05);
+            animation: borderPulse 2s infinite alternate;
+        }
+        @keyframes borderPulse {
+            0% { border-color: rgba(251, 191, 36, 0.2); box-shadow: 0 4px 15px rgba(251, 191, 36, 0.03); }
+            100% { border-color: rgba(251, 191, 36, 0.5); box-shadow: 0 4px 20px rgba(251, 191, 36, 0.12); }
+        }
+        .ws-countdown-timer {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #fbbf24;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+            margin: 0.5rem 0;
+            font-family: monospace;
+            animation: textPulse 1s infinite alternate;
+        }
+        @keyframes textPulse {
+            0% { transform: scale(0.98); opacity: 0.9; }
+            100% { transform: scale(1.03); opacity: 1; }
+        }
+        .ws-tasks-wrap {
+            background: rgba(16, 185, 129, 0.03);
+            border: 1.5px solid rgba(16, 185, 129, 0.2);
+            border-radius: 20px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.06);
+            animation: fadeInUp 0.4s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .ws-task-item {
+            background: rgba(255,255,255,0.01);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .ws-task-item:hover {
+            background: rgba(16, 185, 129, 0.04);
+            border-color: rgba(16, 185, 129, 0.15);
+            transform: translateX(-3px);
+        }
+        .ws-task-item.completed {
+            border-color: rgba(16, 185, 129, 0.35);
+            background: rgba(16, 185, 129, 0.06);
+        }
+        .ws-task-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: transparent;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .ws-task-item.completed .ws-task-checkbox {
+            border-color: #10b981;
+            background: #10b981;
+            color: #fff;
+        }
+        .ws-task-text {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+            transition: all 0.2s ease;
+        }
+        .ws-task-item.completed .ws-task-text {
+            color: rgba(255,255,255,0.45);
+            text-decoration: line-through;
         }
     </style>
 </head>
@@ -129,9 +224,51 @@
     </div>
 
     <main id="workshops-main">
-        <div class="day-panel active" id="ws-panel-day-1"></div>
-        <div class="day-panel" id="ws-panel-day-2"></div>
-        <div class="day-panel" id="ws-panel-day-3"></div>
+        <div class="day-panel active" id="ws-panel-day-1">
+            <div class="workshop-card" onclick="openWorkshopModal(1)">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="ws-icon"><i class="bi bi-brain-fill"></i></div>
+                    <div>
+                        <div class="lecture-card-title fw-bold" style="font-size:1.05rem; color:#fff; line-height:1.4">فك الشفرة: من يقود فكرك؟ 🧠</div>
+                        <div class="lecture-card-meta mt-2" style="gap: 8px; display: flex; flex-wrap: wrap;">
+                            <span class="meta-chip" style="font-size:0.75rem"><i class="bi bi-clock-fill text-danger me-1"></i>7:00 pm - 9:00 pm</span>
+                            <span class="meta-chip" style="font-size:0.75rem"><i class="bi bi-geo-alt-fill text-info me-1"></i>قاعة ورش العمل</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="lecture-card-summary" style="font-size:0.82rem; color:var(--text-secondary); margin:0; line-height:1.5">اكتشف المؤثرات الخفية التي تشكل أفكارك اليومية وقراراتك الشخصية في جلسة تفاعلية شيقة.</p>
+            </div>
+        </div>
+        <div class="day-panel" id="ws-panel-day-2">
+            <div class="workshop-card" onclick="openWorkshopModal(2)">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="ws-icon"><i class="bi bi-compass-fill"></i></div>
+                    <div>
+                        <div class="lecture-card-title fw-bold" style="font-size:1.05rem; color:#fff; line-height:1.4">البوصلة والذكاء الاصطناعي: من القائد؟ 🧭🤖</div>
+                        <div class="lecture-card-meta mt-2" style="gap: 8px; display: flex; flex-wrap: wrap;">
+                            <span class="meta-chip" style="font-size:0.75rem"><i class="bi bi-clock-fill text-danger me-1"></i>7:00 pm - 9:00 pm</span>
+                            <span class="meta-chip" style="font-size:0.75rem"><i class="bi bi-geo-alt-fill text-info me-1"></i>قاعة ورش العمل</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="lecture-card-summary" style="font-size:0.82rem; color:var(--text-secondary); margin:0; line-height:1.5">رحلة ممتعة لمعرفة ما يقود حياتك، وكيف تكون قائداً متميزاً في عصر التكنولوجيا والذكاء الاصطناعي.</p>
+            </div>
+        </div>
+        <div class="day-panel" id="ws-panel-day-3">
+            <div class="workshop-card" onclick="openWorkshopModal(3)">
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div class="ws-icon"><i class="bi bi-map-fill"></i></div>
+                    <div>
+                        <div class="lecture-card-title fw-bold" style="font-size:1.05rem; color:#fff; line-height:1.4">خريطة الطريق والشخصيات السبعة 🗺️👤</div>
+                        <div class="lecture-card-meta mt-2" style="gap: 8px; display: flex; flex-wrap: wrap;">
+                            <span class="meta-chip" style="font-size:0.75rem"><i class="bi bi-clock-fill text-danger me-1"></i>2:00 pm - 4:00 pm</span>
+                            <span class="meta-chip" style="font-size:0.75rem"><i class="bi bi-geo-alt-fill text-info me-1"></i>قاعة ورش العمل</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="lecture-card-summary" style="font-size:0.82rem; color:var(--text-secondary); margin:0; line-height:1.5">تعلم المعايير الذهبية لتقييم مسارك الشخصي والروحي، واكتشف أسرار الشخصيات السبعة.</p>
+            </div>
+        </div>
     </main>
 
     <div class="modal fade lecture-modal" id="workshopModal" tabindex="-1" aria-hidden="true">

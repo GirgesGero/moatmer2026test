@@ -11,6 +11,30 @@
             const data = await DataService.loadConference();
             const groups = data.groups || [];
             
+            // محاولة جلب النقاط الحية من Google Apps Script سحابياً
+            let isLive = false;
+            const googleScriptUrl = localStorage.getItem('group_eval_google_script_url') || (data.meta && data.meta.googleScriptUrl);
+            if (googleScriptUrl) {
+                try {
+                    const response = await fetch(`${googleScriptUrl}?action=getScores&t=${Date.now()}`);
+                    if (response.ok) {
+                        const liveScores = await response.json();
+                        if (Array.isArray(liveScores)) {
+                            liveScores.forEach(ls => {
+                                const group = groups.find(g => g.id === ls.id);
+                                if (group) {
+                                    group.score = ls.score;
+                                }
+                            });
+                            isLive = true;
+                            console.log('DataService: تم تحديث درجات المجموعات بنجاح من خادم جوجل!');
+                        }
+                    }
+                } catch (err) {
+                    console.warn('تعذر جلب الدرجات الحية من السحاب، سيتم استخدام درجات الكاش المحلي:', err);
+                }
+            }
+
             // قراءة المشاركين مع أخذ مسودة المتصفح بعين الاعتبار إن وجدت
             let participants = data.participants || [];
             try {
@@ -64,7 +88,7 @@
                         <div class="leaderboard-subtitle">
                             <span class="sub-line left"></span>
                             <span class="sub-sparkle">✨</span>
-                            <span class="sub-txt">كل مجموعة ليها شغفها، والتحدي واحد!</span>
+                            <span class="sub-txt">${isLive ? 'نقاط التحدي حية ومباشرة ⚡' : 'كل مجموعة ليها شغفها، والتحدي واحد!'}</span>
                             <span class="sub-sparkle">✨</span>
                             <span class="sub-line right"></span>
                         </div>
