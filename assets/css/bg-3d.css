@@ -1,0 +1,140 @@
+/* ═══════════════════════════════════════════════
+   bg-3d.css — تنسيقات الخلفية ثلاثية الأبعاد التفاعلية
+   مؤتمر خلطبيطة بالصلصة 2026
+   ═══════════════════════════════════════════════ */
+
+/* حاوية الخلفية المنظورية */
+.gsap-3d-bg-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    z-index: -9999;
+    pointer-events: none;
+    perspective: 1400px;
+    background: #040814; /* لون احتياطي داكن متناسق مع المشروع */
+}
+
+/* طبقة التحريك ثلاثية الأبعاد */
+.gsap-3d-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+/* 1. الهالات الضوئية النيون الضبابية (Blur Orbs) */
+.bg-3d-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.18;
+    will-change: transform;
+}
+
+.bg-3d-orb-cyan {
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+    top: -10%;
+    left: -15%;
+}
+
+.bg-3d-orb-pink {
+    width: 55vw;
+    height: 55vw;
+    background: radial-gradient(circle, #db2777 0%, transparent 70%);
+    bottom: -15%;
+    right: -15%;
+}
+
+.bg-3d-orb-purple {
+    width: 45vw;
+    height: 45vw;
+    background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
+    top: 25%;
+    right: 15%;
+    opacity: 0.12;
+}
+
+/* 2. شبكة المنظور التقني (3D Tech Grid) */
+.bg-3d-grid {
+    position: absolute;
+    inset: -30%;
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    background-size: 60px 60px;
+    transform: rotateX(65deg) translateZ(-250px);
+    opacity: 0.45;
+    pointer-events: none;
+    transform-style: preserve-3d;
+}
+
+/* 3. شظايا البطاقات الزجاجية العائمة (3D Floating Shards) */
+.bg-3d-card {
+    position: absolute;
+    transform-style: preserve-3d;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    will-change: transform;
+    transition: box-shadow 0.3s ease;
+}
+
+/* إضاءة خفيفة عند الحواف */
+.bg-3d-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 60%);
+    pointer-events: none;
+}
+
+/* الشعار داخل الشظية عائم بشكل بارز */
+.bg-3d-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.12;
+    filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.25));
+    transform: translateZ(25px); /* تأثير بروز ثلاثي الأبعاد إضافي للشعار */
+    will-change: transform;
+}
+
+/* الشظية الأولى - يمين أعلى */
+.bg-3d-card-1 {
+    width: 130px;
+    height: 130px;
+    top: 15%;
+    right: 12%;
+}
+
+/* الشظية الثانية - يسار أسفل */
+.bg-3d-card-2 {
+    width: 110px;
+    height: 110px;
+    bottom: 18%;
+    left: 8%;
+}
+
+/* الشظية الثالثة - وسط يسار (أصغر وأعمق) */
+.bg-3d-card-3 {
+    width: 85px;
+    height: 85px;
+    top: 48%;
+    left: 24%;
+}

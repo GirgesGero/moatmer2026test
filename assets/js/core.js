@@ -436,6 +436,13 @@ function searchParticipant(query) {
 
 // ─── ربط انتقالات الصفحات التلقائي والتحميل المسبق الذكي ───
 document.addEventListener('DOMContentLoaded', () => {
+    // تفعيل الخلفية ثلاثية الأبعاد التفاعلية تلقائياً على مستوى المشروع
+    const prefix = location.pathname.includes('/pages/') ? '../' : '';
+    const script = document.createElement('script');
+    script.src = prefix + 'assets/js/bg-3d.js?v=2.6';
+    script.defer = true;
+    document.body.appendChild(script);
+
     document.body.classList.add('page-transition-in');
     setTimeout(() => {
         document.body.classList.remove('page-transition-in');
