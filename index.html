@@ -30,9 +30,6 @@
     </div>
     <div class="bg-layer bg-layer-3"></div>
 
-    <!-- شبكة الجزيئات والكونستليشن المتفاعلة -->
-    <canvas id="particles-canvas" class="particles-canvas"></canvas>
-
     <!-- واجهة الترحيب -->
     <div class="welcome-page">
         <div class="welcome-card-glass">
@@ -40,10 +37,7 @@
             <div class="welcome-logo-container">
                 <div class="logo-portal-ring ring-outer"></div>
                 <div class="logo-portal-ring ring-inner"></div>
-                <picture>
-                    <source srcset="assets/img/logo-hero.webp" type="image/webp">
-                    <img src="assets/img/logo-hero.png" alt="لوجو مؤتمر خلطبيطة بالصلصة" class="welcome-logo">
-                </picture>
+                <img src="assets/img/%D9%84%D9%88%D8%AC%D9%88%20%D8%A7%D9%84%D9%85%D8%A4%D8%AA%D9%85%D8%B1%20.png" alt="لوجو مؤتمر خلطبيطة بالصلصة" class="welcome-logo">
                 <div class="welcome-logo-glow"></div>
             </div>
 
@@ -93,80 +87,8 @@
         </div>
     </div>
 
-    <!-- نظام الجزيئات الكونستليشن - أداء 60fps -->
-    <script>
-        (function() {
-            var canvas = document.getElementById('particles-canvas');
-            if (!canvas) return;
-            var ctx = canvas.getContext('2d');
-            var particles = [];
-            var PARTICLE_COUNT = 45;
-
-            function resize() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-            }
-            resize();
-            window.addEventListener('resize', resize);
-
-            function Particle() { this.reset(); }
-            Particle.prototype.reset = function() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = (Math.random() - 0.5) * 0.3;
-                this.speedY = (Math.random() - 0.5) * 0.3;
-                this.opacity = Math.random() * 0.4 + 0.15;
-                this.hue = [190, 160, 42, 275][Math.floor(Math.random() * 4)];
-                this.pulse = Math.random() * Math.PI * 2;
-                this.pulseSpeed = Math.random() * 0.015 + 0.005;
-            };
-            Particle.prototype.update = function() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                this.pulse += this.pulseSpeed;
-                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
-            };
-            Particle.prototype.draw = function() {
-                var dynamicOpacity = this.opacity * (0.6 + 0.4 * Math.sin(this.pulse));
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = 'hsla(' + this.hue + ', 85%, 65%, ' + dynamicOpacity + ')';
-                ctx.fill();
-            };
-
-            for (var i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
-
-            function drawLines() {
-                for (var i = 0; i < particles.length; i++) {
-                    for (var j = i + 1; j < particles.length; j++) {
-                        var dx = particles[i].x - particles[j].x;
-                        var dy = particles[i].y - particles[j].y;
-                        var dist = Math.sqrt(dx * dx + dy * dy);
-                        if (dist < 130) {
-                            ctx.beginPath();
-                            ctx.moveTo(particles[i].x, particles[i].y);
-                            ctx.lineTo(particles[j].x, particles[j].y);
-                            ctx.strokeStyle = 'rgba(6, 182, 212, ' + (0.07 * (1 - dist / 130)) + ')';
-                            ctx.lineWidth = 0.5;
-                            ctx.stroke();
-                        }
-                    }
-                }
-            }
-
-            function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                for (var i = 0; i < particles.length; i++) {
-                    particles[i].update();
-                    particles[i].draw();
-                }
-                drawLines();
-                requestAnimationFrame(animate);
-            }
-            animate();
-        })();
-    </script>
+    <!-- الخلفية ثلاثية الأبعاد التفاعلية (GSAP 3D) -->
+    <script src="assets/js/bg-3d.js?v=2.6" defer></script>
 
     <!-- منطق التوجيه والانتقال الناعم -->
     <script>

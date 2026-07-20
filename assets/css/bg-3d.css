@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════
-   bg-3d.css — تنسيقات الخلفية ثلاثية الأبعاد التفاعلية
+   bg-3d.css — تنسيقات الخلفية ثلاثية الأبعاد التفاعلية المطورة
    مؤتمر خلطبيطة بالصلصة 2026
    ═══════════════════════════════════════════════ */
 
-/* حاوية الخلفية المنظورية */
+/* حاوية الخلفية المنظورية العمياء */
 .gsap-3d-bg-container {
     position: fixed;
     top: 0;
@@ -13,8 +13,8 @@
     overflow: hidden;
     z-index: -9999;
     pointer-events: none;
-    perspective: 1400px;
-    background: #040814; /* لون احتياطي داكن متناسق مع المشروع */
+    perspective: 1000px; /* منظور معزز للعمق ثلاثي الأبعاد */
+    background: #040814;
 }
 
 /* طبقة التحريك ثلاثية الأبعاد */
@@ -30,111 +30,148 @@
 .bg-3d-orb {
     position: absolute;
     border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.18;
+    filter: blur(140px);
+    opacity: 0.22;
     will-change: transform;
 }
 
 .bg-3d-orb-cyan {
-    width: 50vw;
-    height: 50vw;
-    background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
-    top: -10%;
+    width: 55vw;
+    height: 55vw;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.45) 0%, transparent 70%);
+    top: -15%;
     left: -15%;
 }
 
 .bg-3d-orb-pink {
-    width: 55vw;
-    height: 55vw;
-    background: radial-gradient(circle, #db2777 0%, transparent 70%);
-    bottom: -15%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(circle, rgba(219, 39, 119, 0.4) 0%, transparent 70%);
+    bottom: -20%;
     right: -15%;
 }
 
 .bg-3d-orb-purple {
-    width: 45vw;
-    height: 45vw;
-    background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
-    top: 25%;
+    width: 50vw;
+    height: 50vw;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, transparent 70%);
+    top: 30%;
     right: 15%;
-    opacity: 0.12;
+    opacity: 0.15;
 }
 
 /* 2. شبكة المنظور التقني (3D Tech Grid) */
 .bg-3d-grid {
     position: absolute;
-    inset: -30%;
+    inset: -40%;
     background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-    background-size: 60px 60px;
-    transform: rotateX(65deg) translateZ(-250px);
-    opacity: 0.45;
+        linear-gradient(rgba(6, 182, 212, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(6, 182, 212, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    transform: rotateX(70deg) translateZ(-300px);
+    opacity: 0.6;
     pointer-events: none;
     transform-style: preserve-3d;
+    will-change: transform;
 }
 
-/* 3. شظايا البطاقات الزجاجية العائمة (3D Floating Shards) */
+/* 3. شظايا البطاقات الزجاجية النيون العائمة (3D Floating Shards) */
 .bg-3d-card {
     position: absolute;
     transform-style: preserve-3d;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(10, 20, 42, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
     box-shadow: 
-        0 20px 45px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    will-change: transform;
-    transition: box-shadow 0.3s ease;
+        0 30px 60px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    will-change: transform, opacity;
 }
 
-/* إضاءة خفيفة عند الحواف */
+/* تأثيرات التوهج النيون للأطراف */
+.bg-3d-card-cyan {
+    border-color: rgba(6, 182, 212, 0.3);
+    box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.5),
+        0 0 25px rgba(6, 182, 212, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.bg-3d-card-pink {
+    border-color: rgba(219, 39, 119, 0.3);
+    box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.5),
+        0 0 25px rgba(219, 39, 119, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.bg-3d-card-purple {
+    border-color: rgba(124, 58, 237, 0.3);
+    box-shadow: 
+        0 20px 45px rgba(0, 0, 0, 0.5),
+        0 0 25px rgba(124, 58, 237, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* الشعار عائم ببروز ممتاز ثلاثي الأبعاد داخل البطاقة */
+.bg-3d-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0.25; /* زيادة الشفافية والظهور ليكون أكثر وضوحاً */
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.3));
+    transform: translateZ(35px); /* تعميق تأثير البروز ثلاثي الأبعاد */
+    will-change: transform;
+}
+
+/* إضاءة حواف البطاقات */
 .bg-3d-card::after {
     content: '';
     position: absolute;
     inset: 0;
     border-radius: 28px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.06), transparent 60%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 70%);
     pointer-events: none;
 }
 
-/* الشعار داخل الشظية عائم بشكل بارز */
-.bg-3d-card img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    opacity: 0.12;
-    filter: drop-shadow(0 0 12px rgba(6, 182, 212, 0.25));
-    transform: translateZ(25px); /* تأثير بروز ثلاثي الأبعاد إضافي للشعار */
-    will-change: transform;
-}
-
-/* الشظية الأولى - يمين أعلى */
+/* موضع الشظايا الافتراضي */
 .bg-3d-card-1 {
-    width: 130px;
-    height: 130px;
-    top: 15%;
-    right: 12%;
+    width: 150px;
+    height: 150px;
+    top: 20%;
+    right: 15%;
 }
 
-/* الشظية الثانية - يسار أسفل */
 .bg-3d-card-2 {
-    width: 110px;
-    height: 110px;
-    bottom: 18%;
-    left: 8%;
+    width: 120px;
+    height: 120px;
+    bottom: 22%;
+    left: 10%;
 }
 
-/* الشظية الثالثة - وسط يسار (أصغر وأعمق) */
 .bg-3d-card-3 {
-    width: 85px;
-    height: 85px;
-    top: 48%;
-    left: 24%;
+    width: 90px;
+    height: 90px;
+    top: 52%;
+    left: 26%;
+}
+
+/* 4. جزيئات الغبار ثلاثية الأبعاد (3D Space Dust) */
+.bg-3d-dust {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #ffffff;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 4px #22d3ee);
+    opacity: 0.6;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    will-change: transform, opacity;
 }

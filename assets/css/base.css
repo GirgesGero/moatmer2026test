@@ -723,162 +723,256 @@ img { max-width: 100%; display: block; }
    ===================================================== */
 .activity-item {
     position: relative;
-    border-left: none;
-    border-right: 4px solid var(--card-border-color, var(--border-light));
-    border-radius: 20px;
-    padding: 1.25rem 1.4rem;
-    background: rgba(255, 255, 255, 0.02);
-    border-top: 1px solid rgba(255, 255, 255, 0.02);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.01);
-    box-shadow: var(--shadow-sm), 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border-radius: 24px;
+    padding: 0;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.45) 0%, rgba(8, 16, 36, 0.55) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
     overflow: hidden;
-}
-.activity-item::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, transparent 70%, var(--card-glow-color) 100%);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
 }
 .activity-item:hover {
-    transform: translateY(-3px) translateX(2px);
-    box-shadow: var(--shadow-lg), 0 8px 25px rgba(0, 0, 0, 0.2), 0 0 15px var(--card-glow-color);
-    background: rgba(255, 255, 255, 0.04);
-}
-.activity-item:hover::after {
-    opacity: 0.04;
+    transform: translateY(-4px) scale(1.005);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.55),
+        0 0 30px rgba(var(--type-color-rgb), 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, rgba(20, 38, 77, 0.55) 0%, rgba(12, 24, 51, 0.65) 100%);
+    border-color: rgba(var(--type-color-rgb), 0.3);
 }
 
-/* التواقيت والترتيب */
+/* عمود التوقيت الجانبي للديسك توب والتابلت */
 .activity-time {
-    font-size: 0.78rem;
-    font-weight: 750;
-    color: var(--primary-light);
-    background: rgba(6, 182, 212, 0.08);
-    padding: 5px 12px;
-    border-radius: 12px;
-    display: inline-flex;
+    width: 105px;
+    min-width: 105px;
+    background: linear-gradient(180deg, rgba(var(--type-color-rgb), 0.22) 0%, rgba(var(--type-color-rgb), 0.04) 100%);
+    border-left: 1px solid rgba(var(--type-color-rgb), 0.25);
+    border-right: none;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 4px;
-    border: 1px solid rgba(6, 182, 212, 0.15);
-    align-self: flex-start;
-    margin-bottom: 2px;
-    direction: rtl;
+    justify-content: center;
+    gap: 6px;
+    padding: 1.4rem 0.6rem;
+    align-self: stretch;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
 }
-.activity-time .time-prefix,
-.activity-time .time-connector {
-    color: rgba(255, 255, 255, 0.4);
-    font-weight: 600;
-    font-size: 0.72rem;
-    margin: 0 1px;
-}
-.activity-time .time-num {
-    font-family: monospace, sans-serif;
-    font-size: 0.84rem;
-    letter-spacing: 0.5px;
-    font-weight: 800;
-    color: #38bdf8;
-}
-.activity-time .time-suffix {
-    color: #7dd3fc;
-    font-size: 0.72rem;
-    font-weight: 800;
-    margin-left: 2px;
+.activity-item:hover .activity-time {
+    background: linear-gradient(180deg, rgba(var(--type-color-rgb), 0.3) 0%, rgba(var(--type-color-rgb), 0.08) 100%);
 }
 
-.activity-title {
+/* أيقونة الساعة بالأعلى */
+.time-clock-icon {
+    font-size: 1.1rem;
+    color: var(--type-color-hex);
+    filter: drop-shadow(0 0 4px var(--type-color-hex));
+    animation: clockPulse 2.5s infinite ease-in-out alternate;
+    margin-bottom: 2px;
+}
+@keyframes clockPulse {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+    100% { transform: scale(1.18) rotate(8deg); opacity: 1; }
+}
+
+/* مجمع أرقام التوقيت */
+.time-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+}
+.time-digit {
+    font-family: 'Cairo', sans-serif;
     font-size: 1.05rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.25);
+}
+.time-label {
+    font-size: 0.72rem;
     font-weight: 800;
-    color: var(--text-main);
+    color: var(--type-color-hex);
+    text-shadow: 0 0 6px rgba(var(--type-color-rgb), 0.3);
+}
+
+/* سهم الفصل */
+.time-divider {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.35);
+    line-height: 1;
+    margin: -2px 0;
+}
+
+/* عمود تفاصيل الفعالية */
+.activity-content {
+    flex-grow: 1;
+    padding: 1.4rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+}
+.activity-title {
+    font-size: 1.12rem;
+    font-weight: 800;
+    color: #ffffff;
     display: flex;
     align-items: center;
-    gap: 6px;
-    line-height: 1.4;
+    gap: 10px;
+    line-height: 1.5;
 }
 .activity-title i {
-    font-size: 1.1rem;
-    transition: transform 0.3s ease;
+    font-size: 1.2rem;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    color: var(--type-color-hex) !important;
+    transition: all 0.3s ease;
 }
 .activity-item:hover .activity-title i {
-    transform: scale(1.15) rotate(5deg);
+    background: var(--type-color-hex);
+    color: #ffffff !important;
+    border-color: transparent;
+    transform: scale(1.15) rotate(10deg);
+    box-shadow: 0 0 15px var(--type-color-hex);
 }
 
 .activity-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 4px;
 }
 .activity-chip {
     font-size: 0.76rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    padding: 4px 10px;
+    font-weight: 700;
+    color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 5px 12px;
     border-radius: 12px;
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
 }
 .activity-chip:hover {
-    color: var(--text-main);
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.08);
-}
-.activity-chip i {
-    font-size: 0.82rem;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
 }
 
 /* كروت المحاضرات (أخضر زمردي) */
 .activity-item.type-lecture {
-    --card-border-color: #10b981;
-    --card-glow-color: rgba(16, 185, 129, 0.08);
-}
-.activity-item.type-lecture.activity-now {
-    background: rgba(16, 185, 129, 0.07);
-    border-right-color: #10b981;
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    --type-color-rgb: 16, 185, 129;
+    --type-color-hex: #10b981;
 }
 
-/* كروت ورش العمل (أحمر نيون) */
+/* كروت ورش العمل (بنفسجي/وردي) */
 .activity-item.type-workshop {
-    --card-border-color: #f43f5e;
-    --card-glow-color: rgba(244, 63, 94, 0.08);
-}
-.activity-item.type-workshop.activity-now {
-    background: rgba(244, 63, 94, 0.07);
-    border-right-color: #f43f5e;
-    box-shadow: 0 0 20px rgba(244, 63, 94, 0.2);
+    --type-color-rgb: 139, 92, 246;
+    --type-color-hex: #8b5cf6;
 }
 
 /* كروت الصلوات (ذهبي نيون) */
 .activity-item.type-prayer {
-    --card-border-color: #f59e0b;
-    --card-glow-color: rgba(245, 158, 11, 0.08);
-}
-.activity-item.type-prayer.activity-now {
-    background: rgba(245, 158, 11, 0.07);
-    border-right-color: #f59e0b;
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+    --type-color-rgb: 245, 158, 11;
+    --type-color-hex: #f59e0b;
 }
 
-/* كروت ترفيه وحركة (أزرق سماوي/بنفسجي) */
-.activity-item.type-travel, .activity-item.type-free {
-    --card-border-color: #06b6d4;
-    --card-glow-color: rgba(6, 182, 212, 0.08);
+/* كروت الحركة والرحلات (أزرق سيان نيون) */
+.activity-item.type-travel {
+    --type-color-rgb: 6, 182, 212;
+    --type-color-hex: #06b6d4;
 }
-.activity-item.type-travel.activity-now, .activity-item.type-free.activity-now {
-    background: rgba(6, 182, 212, 0.07);
-    border-right-color: #06b6d4;
-    box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+
+/* كروت الترفيه (وردي نيون) */
+.activity-item.type-free {
+    --type-color-rgb: 236, 72, 153;
+    --type-color-hex: #ec4899;
+}
+
+/* كروت الوجبات (برتقالي دافئ) */
+.activity-item.type-meal {
+    --type-color-rgb: 249, 115, 22;
+    --type-color-hex: #f97316;
+}
+
+/* كروت الأنشطة الأخرى (فضي/سجيل) */
+.activity-item.type-other {
+    --type-color-rgb: 100, 116, 139;
+    --type-color-hex: #64748b;
+}
+
+/* كروت الفعاليات الجارية الآن (Highlight Now Card) */
+.activity-item.activity-now {
+    border-color: var(--type-color-hex);
+    background: linear-gradient(135deg, rgba(var(--type-color-rgb), 0.15) 0%, rgba(8, 16, 36, 0.65) 100%) !important;
+    box-shadow: 
+        0 15px 35px rgba(0, 0, 0, 0.45),
+        0 0 25px rgba(var(--type-color-rgb), 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    border-top-color: rgba(var(--type-color-rgb), 0.3) !important;
+}
+
+/* تنسيقات الشاشات الصغيرة للموبايل (Mobile Responsive) */
+@media (max-width: 480px) {
+    .activity-item {
+        flex-direction: column;
+    }
+    .activity-time {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        flex-direction: row;
+        padding: 0.65rem 1.2rem;
+        border-left: none;
+        border-bottom: 1px solid rgba(var(--type-color-rgb), 0.25);
+        justify-content: flex-start;
+        align-items: center;
+        gap: 12px;
+        align-self: flex-start;
+    }
+    .time-clock-icon {
+        margin-bottom: 0;
+    }
+    .time-block {
+        flex-direction: row;
+        gap: 4px;
+        align-items: baseline;
+    }
+    .time-digit {
+        font-size: 0.95rem;
+    }
+    .time-label {
+        font-size: 0.72rem;
+    }
+    .time-divider {
+        margin: 0;
+        transform: rotate(90deg);
+    }
+    .activity-content {
+        padding: 1.2rem 1.2rem;
+    }
 }
 
 /* =====================================================

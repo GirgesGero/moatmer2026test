@@ -26,16 +26,19 @@
         
         let h = parseInt(parts[0]);
         const m = parts[1];
-        let ampm = 'am';
+        const origH = h;
         
-        if (h >= 12) {
-            ampm = 'pm';
-            if (h > 12) h -= 12;
+        if (h > 12) {
+            h -= 12;
         } else if (h === 0) {
             h = 12;
         }
         
-        return `${h}:${m} ${ampm}`;
+        let suffix = 'ص';
+        if (origH >= 12 && origH < 14) suffix = 'ظ';
+        else if (origH >= 14) suffix = 'م';
+        
+        return `${h}:${m} ${suffix}`;
     }
 
     function formatArabicTimeRange(startTime, endTime) {
@@ -46,35 +49,50 @@
             
             let h = parseInt(parts[0]);
             const m = parts[1];
-            let ampm = 'am';
+            const origH = h;
             
-            if (h >= 12) {
-                ampm = 'pm';
-                if (h > 12) h -= 12;
+            if (h > 12) {
+                h -= 12;
             } else if (h === 0) {
                 h = 12;
             }
             
-            return { formatted: `${h}:${m}`, ampm: ampm };
+            let suffix = 'ص';
+            if (origH >= 12 && origH < 14) suffix = 'ظ';
+            else if (origH >= 14) suffix = 'م';
+            
+            return { formatted: `${h}:${m}`, ampm: suffix };
         };
 
         const start = formatTime(startTime);
         const end = formatTime(endTime);
 
         if (start && end) {
+            if (startTime === endTime) {
+                return `
+                    <div class="time-block single">
+                        <span class="time-digit">${start.formatted}</span>
+                        <span class="time-label">${start.ampm}</span>
+                    </div>
+                `;
+            }
             return `
-                <span class="time-prefix">من</span>
-                <span class="time-num">${start.formatted}</span>
-                <span class="time-suffix">${start.ampm}</span>
-                <span class="time-connector">إلى</span>
-                <span class="time-num">${end.formatted}</span>
-                <span class="time-suffix">${end.ampm}</span>
+                <div class="time-block start">
+                    <span class="time-digit">${start.formatted}</span>
+                    <span class="time-label">${start.ampm}</span>
+                </div>
+                <div class="time-divider"><i class="bi bi-arrow-down-short"></i></div>
+                <div class="time-block end">
+                    <span class="time-digit">${end.formatted}</span>
+                    <span class="time-label">${end.ampm}</span>
+                </div>
             `;
         } else if (start) {
             return `
-                <span class="time-prefix">الساعة</span>
-                <span class="time-num">${start.formatted}</span>
-                <span class="time-suffix">${start.ampm}</span>
+                <div class="time-block single">
+                    <span class="time-digit">${start.formatted}</span>
+                    <span class="time-label">${start.ampm}</span>
+                </div>
             `;
         }
         return '';
@@ -100,16 +118,25 @@
         let starredIds = JSON.parse(localStorage.getItem('yc2_starred_activities') || '[]');
         const isStarred = starredIds.includes(act.id);
 
+        const timeHtml = timeStr 
+            ? `<div class="activity-time">
+                <div class="time-clock-icon"><i class="bi bi-clock-fill"></i></div>
+                ${timeStr}
+               </div>` 
+            : '';
+
         div.innerHTML = `
             <button class="activity-star-btn ${isStarred ? 'active' : ''}" data-id="${act.id}" title="أضف لجدولي">
                 <i class="bi ${isStarred ? 'bi-star-fill' : 'bi-star'}"></i>
             </button>
-            <div class="activity-time">${timeStr}</div>
-            <div class="activity-title"><i class="${t.icon}" style="color:${t.color};margin-left:.4rem;font-size:.85em"></i>${escapeHTML(act.title)}</div>
-            <div class="activity-meta">
-                ${act.place ? `<span class="activity-chip"><i class="bi bi-geo-alt-fill"></i>${escapeHTML(act.place)}</span>` : ''}
-                ${act.notes ? `<span class="activity-chip"><i class="bi bi-chat-text-fill"></i>${escapeHTML(act.notes)}</span>` : ''}
-                ${linkHtml}
+            ${timeHtml}
+            <div class="activity-content">
+                <div class="activity-title"><i class="${t.icon}" style="color:${t.color};margin-left:.4rem;font-size:.85em"></i>${escapeHTML(act.title)}</div>
+                <div class="activity-meta">
+                    ${act.place ? `<span class="activity-chip"><i class="bi bi-geo-alt-fill"></i>${escapeHTML(act.place)}</span>` : ''}
+                    ${act.notes ? `<span class="activity-chip"><i class="bi bi-chat-text-fill"></i>${escapeHTML(act.notes)}</span>` : ''}
+                    ${linkHtml}
+                </div>
             </div>
         `;
 
@@ -157,7 +184,7 @@
             timeline.innerHTML = '';
 
             const acts = program.filter(a => a.day === day)
-                .sort((a, b) => a.time.localeCompare(b.time));
+                .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
 
             if (acts.length === 0) {
                 const dayLabel = day === 1 ? 'الأول' : day === 2 ? 'الثاني' : day === 3 ? 'الثالث' : 'الرابع';
@@ -200,7 +227,7 @@
         if (targetDay !== currentConferenceDay) return;
 
         const dayActs = program.filter(a => a.day === targetDay)
-            .sort((a, b) => a.time.localeCompare(b.time));
+            .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
         
         let nextActivity = null;
         if (currentActivity && currentActivity.day === targetDay) {
@@ -356,7 +383,7 @@
         }
 
         const dayActivities = program.filter(a => a.day === todayDay)
-            .sort((a, b) => a.time.localeCompare(b.time));
+            .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
         
         let currentAct = null;
         let nextAct = null;

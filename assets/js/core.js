@@ -5,15 +5,24 @@
 
 'use strict';
 
-// تحميل ملف DataService ديناميكياً - يتم حقنه في <head> قبل core.js
+// تحميل ملفات الخدمات والخلفية ثلاثية الأبعاد ديناميكياً لتسريع استجابة وفتح الموقع
 (function() {
-    if (window.DataService) return;
     const prefix = location.pathname.includes('/pages/') ? '../' : '';
-    var s = document.createElement('script');
-    s.src = prefix + 'assets/js/data-service.js?v=2.6';
-    s.async = false;
-    s.defer = false;
-    document.head ? document.head.appendChild(s) : document.write('<script src="' + s.src + '"></script>');
+    
+    // تحميل DataService
+    if (!window.DataService) {
+        var s = document.createElement('script');
+        s.src = prefix + 'assets/js/data-service.js?v=2.6';
+        s.async = false;
+        s.defer = false;
+        document.head ? document.head.appendChild(s) : document.write('<script src="' + s.src + '"></script>');
+    }
+
+    // تحميل ملف تحريك الخلفية ثلاثية الأبعاد تفاعلياً بشكل متوازٍ ومستقل لزيادة سرعة التحميل
+    var bgScript = document.createElement('script');
+    bgScript.src = prefix + 'assets/js/bg-3d.js?v=2.6';
+    bgScript.async = true;
+    document.head ? document.head.appendChild(bgScript) : document.write('<script src="' + bgScript.src + '"></script>');
 })();
 
 /* ─── 1. حقن Partials ─────────────────────────────── */
@@ -436,12 +445,6 @@ function searchParticipant(query) {
 
 // ─── ربط انتقالات الصفحات التلقائي والتحميل المسبق الذكي ───
 document.addEventListener('DOMContentLoaded', () => {
-    // تفعيل الخلفية ثلاثية الأبعاد التفاعلية تلقائياً على مستوى المشروع
-    const prefix = location.pathname.includes('/pages/') ? '../' : '';
-    const script = document.createElement('script');
-    script.src = prefix + 'assets/js/bg-3d.js?v=2.6';
-    script.defer = true;
-    document.body.appendChild(script);
 
     document.body.classList.add('page-transition-in');
     setTimeout(() => {
