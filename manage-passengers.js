@@ -206,6 +206,7 @@ function switchSection(section) {
     $('#buses-panel').toggle(section === 'buses');
     $('#rooms-panel').toggle(section === 'rooms');
     $('#groups-panel').toggle(section === 'groups');
+    $('#admin-scores-panel').toggle(section === 'admin-scores');
     $('#schedule-panel').toggle(section === 'schedule');
     $('#cloud-panel').toggle(section === 'cloud');
 
@@ -249,6 +250,8 @@ function refreshAll() {
         renderRoomsPassengerList();
     } else if (currentSection === 'groups') {
         renderGroupsBoard();
+    } else if (currentSection === 'admin-scores') {
+        renderAdminScoresPanel();
     } else if (currentSection === 'schedule') {
         renderSchedulePanel();
     } else if (currentSection === 'cloud') {
@@ -533,37 +536,112 @@ function renderRoomsGrid() {
     $('#roomsContainer').html(html);
 }
 
+let currentRoomsListFilter = 'assigned'; // 'assigned' or 'unassigned'
+
+function switchRoomsListFilter(mode) {
+    currentRoomsListFilter = mode;
+    if (mode === 'assigned') {
+        $('#btnRoomsAssigned').removeClass('secondary').addClass('primary');
+        $('#btnRoomsUnassigned').removeClass('primary').addClass('secondary');
+    } else {
+        $('#btnRoomsUnassigned').removeClass('secondary').addClass('primary');
+        $('#btnRoomsAssigned').removeClass('primary').addClass('secondary');
+    }
+    renderRoomsPassengerList();
+}
+
+function findFirstAvailableBed(roomId, excludeId = null) {
+    if (!db || !db.rooms || !roomId) return null;
+    const room = db.rooms.find(r => r.id === roomId);
+    if (!room) return null;
+
+    const residents = db.participants.filter(p => p.id !== excludeId && p.roomId === room.id);
+    for (let b = 1; b <= room.capacity; b++) {
+        const taken = residents.some(p => Number(p.bedNumber) === b);
+        if (!taken) return b;
+    }
+    return null;
+}
+
 function renderRoomsPassengerList() {
     if (!db || !db.rooms) return;
     const searchTerm = $('#searchInput').val().trim().toLowerCase();
 
-    const roomIds = db.rooms.filter(r => r.gender === currentGender && r.floor === currentFloor).map(r => r.id);
-    let filtered = db.participants.filter(p => p.roomId && roomIds.includes(p.roomId));
+    let filtered = [];
+    if (currentRoomsListFilter === 'assigned') {
+        const roomIds = db.rooms.filter(r => r.gender === currentGender && r.floor === currentFloor).map(r => r.id);
+        filtered = db.participants.filter(p => p.roomId && roomIds.includes(p.roomId));
+        
+        if (searchTerm) {
+            filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+        }
 
-    if (searchTerm) {
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+        filtered.sort((a, b) => {
+            const roomA = db.rooms.find(r => r.id === a.roomId)?.name || '';
+            const roomB = db.rooms.find(r => r.id === b.roomId)?.name || '';
+            if (roomA !== roomB) return roomA.localeCompare(roomB);
+            return (a.bedNumber || 0) - (b.bedNumber || 0);
+        });
+
+        $('#roomsListCount').text(filtered.length + ' مقيم بالدور');
+    } else {
+        filtered = db.participants.filter(p => !p.roomId);
+        
+        if (searchTerm) {
+            filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+        }
+
+        $('#roomsListCount').text(filtered.length + ' غير مسكّن');
     }
-
-    filtered.sort((a, b) => {
-        const roomA = db.rooms.find(r => r.id === a.roomId)?.name || '';
-        const roomB = db.rooms.find(r => r.id === b.roomId)?.name || '';
-        if (roomA !== roomB) return roomA.localeCompare(roomB);
-        return a.bedNumber - b.bedNumber;
-    });
 
     let html = '';
     if (filtered.length === 0) {
-        html = '<div style="text-align:center;color:var(--text-muted);padding:30px;font-size:0.9rem;">لا يوجد مقيمين' + (searchTerm ? ' مطابقين للبحث' : ' في هذا الدور') + '</div>';
+        html = '<div style="text-align:center;color:var(--text-muted);padding:30px;font-size:0.9rem;">' +
+            (currentRoomsListFilter === 'assigned' ? 'لا يوجد مقيمين في هذا الدور' : '🎉 جميع المشتركين تم تسكينهم بنجاح!') +
+            '</div>';
     } else {
         filtered.forEach(p => {
-            const roomName = db.rooms.find(r => r.id === p.roomId)?.name || '';
-            const badge = roomName ? `${roomName.replace('غرفة ', '')}-${p.bedNumber}` : `${p.bedNumber}`;
-            html += passengerItemHtml(p, badge);
+            if (currentRoomsListFilter === 'assigned') {
+                const roomName = db.rooms.find(r => r.id === p.roomId)?.name || '';
+                const badge = roomName ? `${roomName.replace('غرفة ', '')}-${p.bedNumber || '?'}` : `${p.bedNumber || '?'}`;
+                html += passengerItemHtml(p, badge);
+            } else {
+                html += unassignedPassengerItemHtml(p);
+            }
         });
     }
 
     $('#roomsPassengerList').html(html);
-    $('#roomsListCount').text(filtered.length + ' مقيم');
+}
+
+function unassignedPassengerItemHtml(p) {
+    const groupName = db && db.groups ? (db.groups.find(g => g.id === p.groupId)?.name || 'بدون مجموعة') : '';
+    return `
+        <div class="passenger-item" onclick="openEdit('${p.id}')">
+            <div class="p-seat-badge" style="background: linear-gradient(135deg, var(--gold-dark), var(--gold)); box-shadow: 0 2px 8px var(--gold-glow);">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 800; color: #fff; font-size: 0.9rem;">${escapeHTML(p.name)}</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">${escapeHTML(groupName)} • في انتظار التسكين</div>
+            </div>
+            <button class="action-btn primary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="event.stopPropagation(); quickAssignRoom('${p.id}')">
+                <i class="bi bi-house-add-fill me-1"></i> تسكين
+            </button>
+        </div>
+    `;
+}
+
+function quickAssignRoom(participantId) {
+    openEdit(participantId);
+    if (currentGender && currentFloor && db.rooms) {
+        const targetRoom = db.rooms.find(r => r.gender === currentGender && r.floor === currentFloor);
+        if (targetRoom) {
+            $('#editRoom').val(targetRoom.id);
+            const freeBed = findFirstAvailableBed(targetRoom.id, participantId);
+            if (freeBed) $('#editBed').val(freeBed);
+        }
+    }
 }
 
 function openBedEdit(roomId, bedNum) {
@@ -923,8 +1001,11 @@ function saveEdit() {
         const room = db.rooms.find(r => r.id === finalRoom);
         const capacity = room ? room.capacity : 6;
         if (finalBed === null || isNaN(finalBed) || finalBed < 1 || finalBed > capacity) {
-            showToast('رقم السرير غير صحيح!', 'error');
-            return;
+            finalBed = findFirstAvailableBed(finalRoom, p.id);
+            if (finalBed === null) {
+                showToast(`غرفة ${room ? room.name : finalRoom} ممتلئة بالكامل (${capacity}/${capacity})!`, 'error');
+                return;
+            }
         }
         const roomConflict = db.participants.find(x => x.id !== p.id && x.roomId === finalRoom && x.bedNumber === finalBed);
         if (roomConflict) {
@@ -1051,6 +1132,22 @@ function validateAddAssignment() {
 
 $(document).on('input change', '#addBus, #addSeat, #addRoom, #addBed', validateAddAssignment);
 
+$(document).on('change', '#editRoom', function() {
+    const rId = $(this).val();
+    if (rId !== 'none') {
+        const freeBed = findFirstAvailableBed(rId, editingParticipantId);
+        if (freeBed) $('#editBed').val(freeBed);
+    }
+});
+
+$(document).on('change', '#addRoom', function() {
+    const rId = $(this).val();
+    if (rId !== 'none') {
+        const freeBed = findFirstAvailableBed(rId);
+        if (freeBed) $('#addBed').val(freeBed);
+    }
+});
+
 function saveAddPassenger() {
     const name = $('#addName').val().trim();
     if (!name) {
@@ -1089,8 +1186,11 @@ function saveAddPassenger() {
         const room = db.rooms.find(r => r.id === finalRoom);
         const capacity = room ? room.capacity : 6;
         if (finalBed === null || isNaN(finalBed) || finalBed < 1 || finalBed > capacity) {
-            showToast('رقم السرير غير صحيح!', 'error');
-            return;
+            finalBed = findFirstAvailableBed(finalRoom);
+            if (finalBed === null) {
+                showToast(`غرفة ${room ? room.name : finalRoom} ممتلئة بالكامل!`, 'error');
+                return;
+            }
         }
         const roomConflict = db.participants.find(x => x.roomId === finalRoom && x.bedNumber === finalBed);
         if (roomConflict) {
@@ -1303,10 +1403,143 @@ function filterPassengers() {
     }
 }
 
+const MASTER_USER_HASH = '77a3f439969f80c707af7791884a8c135b64f7bf2faf314bb69d6e5e2e5e88c3';
+const MASTER_PASS_HASH = 'f5b9f57cbea8143a47a75f0c45a308b65f7f724ee87dd5bb99727c863744e423';
+
+async function hashSHA256(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function togglePasswordVisibility(inputId, iconId) {
+    const $input = $('#' + inputId);
+    const $icon = $('#' + iconId);
+    if ($input.attr('type') === 'password') {
+        $input.attr('type', 'text');
+        $icon.removeClass('bi-eye-slash').addClass('bi-eye');
+    } else {
+        $input.attr('type', 'password');
+        $icon.removeClass('bi-eye').addClass('bi-eye-slash');
+    }
+}
+
+function initEvadingSubmitButton() {
+    const $btn = $('#masterLoginSubmitBtn');
+    const $user = $('#masterAdminUser');
+    const $pass = $('#masterAdminPass');
+    const $hint = $('#masterLoginHint');
+
+    if (!$btn.length) return;
+
+    function isFormComplete() {
+        return $user.val().trim().length > 0 && $pass.val().trim().length > 0;
+    }
+
+    function checkFormValidityStatus() {
+        if (isFormComplete()) {
+            $btn.css({
+                'transform': 'translate(0, 0)',
+                'background': 'linear-gradient(135deg, #06b6d4, #10b981)',
+                'border-color': '#10b981',
+                'box-shadow': '0 0 25px rgba(16, 185, 129, 0.5)',
+                'cursor': 'pointer'
+            }).html('<i class="bi bi-box-arrow-in-right me-1"></i> دخول اللوحة الآن ✨');
+            $hint.slideUp(150);
+        } else {
+            $btn.css({
+                'background': 'linear-gradient(135deg, rgba(6,182,212,0.3), rgba(16,185,129,0.2))',
+                'border-color': 'rgba(34, 211, 238, 0.4)',
+                'box-shadow': 'none'
+            }).text('دخول اللوحة');
+        }
+    }
+
+    $user.add($pass).on('input keyup change blur focus', function() {
+        checkFormValidityStatus();
+    });
+
+    $btn.on('mouseenter mousemove', function(e) {
+        if (!isFormComplete()) {
+            const btnOffset = $btn.offset();
+            const mouseX = e.pageX;
+            const mouseY = e.pageY;
+            const btnCenterX = btnOffset.left + $btn.outerWidth() / 2;
+            const btnCenterY = btnOffset.top + $btn.outerHeight() / 2;
+
+            let deltaX = (btnCenterX - mouseX);
+            let deltaY = (btnCenterY - mouseY);
+
+            if (Math.abs(deltaX) < 15) deltaX = (Math.random() > 0.5 ? 1 : -1) * 80;
+            if (Math.abs(deltaY) < 10) deltaY = (Math.random() > 0.5 ? 1 : -1) * 40;
+
+            const shiftX = Math.min(Math.max(deltaX * 2.2, -140), 140);
+            const shiftY = Math.min(Math.max(deltaY * 2.2, -40), 40);
+
+            $btn.css('transform', `translate(${shiftX}px, ${shiftY}px)`);
+            $hint.stop(true, true).slideDown(150);
+        }
+    });
+
+    $btn.on('mouseleave', function() {
+        if (!isFormComplete()) {
+            setTimeout(() => {
+                if (!isFormComplete()) {
+                    $btn.css('transform', 'translate(0, 0)');
+                }
+            }, 900);
+        }
+    });
+
+    checkFormValidityStatus();
+}
+
+function checkMasterAdminSession() {
+    if (sessionStorage.getItem('admin_logged_in') === 'true') {
+        $('#masterAdminAuthModal').removeClass('show').hide();
+        return true;
+    } else {
+        $('#masterAdminAuthModal').addClass('show').css('display', 'flex');
+        initEvadingSubmitButton();
+        return false;
+    }
+}
+
+async function handleMasterAdminLogin(e) {
+    e.preventDefault();
+    const user = $('#masterAdminUser').val().trim();
+    const pass = $('#masterAdminPass').val().trim();
+
+    const uHash = await hashSHA256(user);
+    const pHash = await hashSHA256(pass);
+
+    if (uHash === MASTER_USER_HASH && pHash === MASTER_PASS_HASH) {
+        sessionStorage.setItem('admin_logged_in', 'true');
+        $('#masterLoginErrorMsg').hide();
+        checkMasterAdminSession();
+        await initMasterAdminDashboard();
+    } else {
+        $('#masterLoginErrorMsg').show();
+    }
+}
+
+function masterAdminLogout() {
+    if (confirm("هل تريد تسجيل الخروج من لوحة الإدارة؟")) {
+        sessionStorage.removeItem('admin_logged_in');
+        checkMasterAdminSession();
+    }
+}
+
 /* ========================================================
    تهيئة الصفحة
    ======================================================== */
 $(document).ready(async function() {
+    if (!checkMasterAdminSession()) return;
+    await initMasterAdminDashboard();
+});
+
+async function initMasterAdminDashboard() {
     try {
         // دائماً نقوم بجلب البيانات الموحدة والمدمجة بمسودة المشتركين من DataService
         db = await DataService.loadConference();
@@ -1316,11 +1549,21 @@ $(document).ready(async function() {
         refreshAll();
         initDragDrop();
         updateSaveIndicator();
+
+        window.addEventListener('yc_live_data_updated', function(e) {
+            if (e.detail) {
+                db = e.detail;
+                populateDropdowns();
+                renderStatsBar();
+                refreshAll();
+            }
+        });
     } catch (e) {
         console.error('Failed to load conference-data: ', e);
         showToast('تعذر تحميل البيانات من الملف المساعد. الرجاء استيراد ملف JSON يدوياً.', 'error');
         toggleImport();
     }
+}
 
     $('.edit-overlay, .add-overlay, .confirm-overlay').on('click', function(e) {
         if (e.target === this) {
@@ -1501,4 +1744,210 @@ function renderMasterFeedbacks() {
     });
 
     container.innerHTML = html;
+}
+
+/* ========================================================
+   إدارة النقاط والحكام وتقييم المجموعات (Admin Scores & 3 Judges)
+   ======================================================== */
+
+function updateJudgesHeaders() {
+    const j1 = $('#judge1Name').val().trim() || 'الحكم 1';
+    const j2 = $('#judge2Name').val().trim() || 'الحكم 2';
+    const j3 = $('#judge3Name').val().trim() || 'الحكم 3';
+    $('#thJudge1').text(j1);
+    $('#thJudge2').text(j2);
+    $('#thJudge3').text(j3);
+}
+
+function saveGasSettingsFromMaster() {
+    const url = $('#masterGasUrlInput').val();
+    const token = $('#masterGasTokenInput').val();
+    window.DataService.setGasUrl(url);
+    window.DataService.setGasToken(token);
+    showToast('✅ تم حفظ إعدادات السيرفر السحابي ومفتاح الأمان بنجاح!', 'success');
+    updateMasterCloudStatus();
+}
+
+function updateMasterCloudStatus() {
+    const url = window.DataService.getGasUrl();
+    const $badge = $('#masterCloudBadge');
+    if ($badge.length) {
+        if (url) {
+            $badge.html('<i class="bi bi-cloud-check-fill me-1"></i> متصل بـ Google Sheets ✅').css({
+                'background': 'rgba(16, 185, 129, 0.2)', 'border-color': '#10b981', 'color': '#34d399'
+            });
+        } else {
+            $badge.html('<i class="bi bi-cloud-slash-fill me-1"></i> غير متصل ⚠️').css({
+                'background': 'rgba(245, 158, 11, 0.2)', 'border-color': '#f59e0b', 'color': '#fbbf24'
+            });
+        }
+    }
+}
+
+async function openGuideModalMaster() {
+    $('#guideModalMaster').addClass('show');
+    try {
+        const res = await fetch('assets/js/google-apps-script-Code.gs.js');
+        const text = await res.text();
+        $('#gasScriptCodeMaster').val(text);
+    } catch (e) {}
+}
+
+function closeGuideModalMaster() {
+    $('#guideModalMaster').removeClass('show');
+}
+
+function copyGasCodeMaster() {
+    const el = document.getElementById('gasScriptCodeMaster');
+    el.select();
+    document.execCommand('copy');
+    showToast('تم نسخ كود Google Apps Script بنجاح! 📋', 'success');
+}
+
+function renderAdminScoresPanel() {
+    // 1. تحميل الإعدادات المحفوظة
+    const savedUrl = window.DataService.getGasUrl();
+    if (savedUrl) $('#masterGasUrlInput').val(savedUrl);
+
+    const savedToken = window.DataService.getGasToken();
+    if (savedToken) $('#masterGasTokenInput').val(savedToken);
+
+    updateJudgesHeaders();
+    renderGroupsEvalTable();
+    renderGroupSummaryCards();
+}
+
+function renderGroupsEvalTable() {
+    if (!db || !Array.isArray(db.groups)) return;
+
+    let html = '';
+    db.groups.forEach(g => {
+        const members = db.participants ? db.participants.filter(p => p.groupId === g.id) : [];
+
+        html += `
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                <td style="padding: 12px; text-align: right; font-weight: 800; color: #fff;">
+                    <span class="badge-chip" style="background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); color: #22d3ee; padding: 4px 10px; border-radius: 12px;">
+                        ${escapeHTML(g.name)}
+                    </span>
+                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">(${members.length} مشترك)</div>
+                </td>
+                <td style="padding: 8px;">
+                    <input type="number" id="j1_${g.id}" class="edit-input" style="width: 70px; padding: 6px; font-size: 0.85rem;" min="0" value="0" oninput="calcGroupScoreSum('${g.id}')">
+                </td>
+                <td style="padding: 8px;">
+                    <input type="number" id="j2_${g.id}" class="edit-input" style="width: 70px; padding: 6px; font-size: 0.85rem;" min="0" value="0" oninput="calcGroupScoreSum('${g.id}')">
+                </td>
+                <td style="padding: 8px;">
+                    <input type="number" id="j3_${g.id}" class="edit-input" style="width: 70px; padding: 6px; font-size: 0.85rem;" min="0" value="0" oninput="calcGroupScoreSum('${g.id}')">
+                </td>
+                <td style="padding: 8px;">
+                    <span id="total_${g.id}" style="font-weight: 900; font-size: 1rem; color: #fbbf24;">0</span>
+                </td>
+                <td style="padding: 8px;">
+                    <button class="action-btn primary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="applyGroupScoresRow('${g.id}', '${escapeHTML(g.name)}')">
+                        <i class="bi bi-plus-circle me-1"></i> اعتماد وافتراض النقاط
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    $('#groupsEvalTableBody').html(html);
+}
+
+function calcGroupScoreSum(groupId) {
+    const s1 = Number($(`#j1_${groupId}`).val() || 0);
+    const s2 = Number($(`#j2_${groupId}`).val() || 0);
+    const s3 = Number($(`#j3_${groupId}`).val() || 0);
+    $(`#total_${groupId}`).text(s1 + s2 + s3);
+}
+
+async function applyGroupScoresRow(groupId, groupName) {
+    const s1 = Number($(`#j1_${groupId}`).val() || 0);
+    const s2 = Number($(`#j2_${groupId}`).val() || 0);
+    const s3 = Number($(`#j3_${groupId}`).val() || 0);
+    const activityTotal = s1 + s2 + s3;
+
+    if (!db || !Array.isArray(db.participants)) return;
+
+    let updatedCount = 0;
+    let newGroupTotal = 0;
+
+    // إضافة نقاط النشاط الحالي لإجمالي نقاط كافة أفراد المجموعة
+    db.participants.forEach(p => {
+        if (p.groupId === groupId) {
+            p.points = Number(p.points || 0) + activityTotal;
+            newGroupTotal = p.points;
+            updatedCount++;
+        }
+    });
+
+    markUnsaved();
+    saveToStorage();
+    renderGroupSummaryCards();
+
+    // السحابة: إرسال أمر تحديث نقاط المجموعة بالسحابة عبر updateGroupPoints
+    const res = await window.DataService.sendToGAS({
+        action: 'updateGroupPoints',
+        group: groupName,
+        points: newGroupTotal
+    });
+
+    showToast(`✅ تم اعتماد إضافة +${activityTotal} نقطة لـ ${groupName}! الإجمالي الجديد: ${newGroupTotal} نقطة (${updatedCount} مشترك)`, 'success');
+}
+
+async function adjGroupTotalPoints(groupId, groupName, delta) {
+    if (!db || !Array.isArray(db.participants)) return;
+
+    let newGroupTotal = 0;
+    let updatedCount = 0;
+
+    db.participants.forEach(p => {
+        if (p.groupId === groupId) {
+            p.points = Math.max(0, Number(p.points || 0) + delta);
+            newGroupTotal = p.points;
+            updatedCount++;
+        }
+    });
+
+    markUnsaved();
+    saveToStorage();
+    renderGroupSummaryCards();
+
+    await window.DataService.sendToGAS({
+        action: 'updateGroupPoints',
+        group: groupName,
+        points: newGroupTotal
+    });
+
+    showToast(`تم تعديل نقاط ${groupName} إلى ${newGroupTotal} نقطة بنجاح! ✅`, 'info');
+}
+
+function renderGroupSummaryCards() {
+    if (!db || !Array.isArray(db.groups)) return;
+
+    let html = '';
+    db.groups.forEach(g => {
+        const members = db.participants ? db.participants.filter(p => p.groupId === g.id) : [];
+        const pts = members.length > 0 ? Number(members[0].points || 0) : 0;
+
+        html += `
+            <div class="col-md-6 col-12">
+                <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--glass-border); border-radius: 18px; padding: 14px 18px; backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 1.05rem; color: #fff;">${escapeHTML(g.name)}</div>
+                        <div style="font-size: 0.78rem; color: var(--text-muted);">${members.length} مشتركين في المجموعة</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="action-btn secondary" style="padding: 4px 10px; font-size: 0.85rem; font-weight: 900;" onclick="adjGroupTotalPoints('${g.id}', '${escapeHTML(g.name)}', -5)">-5</button>
+                        <span style="font-weight: 900; font-size: 1.4rem; color: #fbbf24; min-width: 40px; text-align: center;">${pts}</span>
+                        <button class="action-btn primary" style="padding: 4px 10px; font-size: 0.85rem; font-weight: 900;" onclick="adjGroupTotalPoints('${g.id}', '${escapeHTML(g.name)}', 10)">+10</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    $('#groupSummaryCardsContainer').html(html);
 }

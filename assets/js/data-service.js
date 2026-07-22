@@ -8,7 +8,10 @@
 class DataService {
     static cachedData = null;
     static loadPromise = null;
-    static DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbynILHE3GAtoKJqSuNWPHSxi7BERdxsGUWMwEa73Bmspi7KRB_37pLuqH7FBux86cWt/exec';
+    static GAS_URL_KEY = 'yc_gas_url';
+    static GAS_TOKEN_KEY = 'yc_gas_token';
+    static DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxKuHvDa7bu5SGxRK1xYPyY8aZHG_1kC8KJb5RGFDGGdUsVEc2Irr9fIzMC55mu-AiC/exec';
+    static DEFAULT_GAS_TOKEN = 'YC2026_SECURE_TOKEN_8921';
 
     /**
      * الحصول على رابط Web App المربوط بـ Google Apps Script
@@ -25,6 +28,24 @@ class DataService {
             localStorage.setItem(this.GAS_URL_KEY, url.trim());
         } else {
             localStorage.removeItem(this.GAS_URL_KEY);
+        }
+    }
+
+    /**
+     * الحصول على مفتاح الأمان (Security Token) للمزامنة الحساسة
+     */
+    static getGasToken() {
+        return (localStorage.getItem(this.GAS_TOKEN_KEY) || this.DEFAULT_GAS_TOKEN).trim();
+    }
+
+    /**
+     * ضبط وتحديث مفتاح الأمان
+     */
+    static setGasToken(token) {
+        if (token) {
+            localStorage.setItem(this.GAS_TOKEN_KEY, token.trim());
+        } else {
+            localStorage.removeItem(this.GAS_TOKEN_KEY);
         }
     }
 
@@ -99,24 +120,48 @@ class DataService {
 
                     dataCopy.participants.forEach(p => {
                         if (!p.group && p.groupId) p.group = groupsMap.get(p.groupId) || p.groupId;
-                        if (!p.room && p.roomId) p.room = String(p.roomId).replace(/^r/, '');
+                        
+                        // تطبيع الغرف والسكن
+                        if (!p.roomId && p.room) {
+                            const digits = String(p.room).match(/\d+/);
+                            if (digits) p.roomId = 'r' + digits[0];
+                            else p.roomId = String(p.room);
+                        }
+                        if (!p.room && p.roomId) {
+                            p.room = String(p.roomId).replace(/^r/, '');
+                        }
+                        if (p.bedNumber == null && p.bed != null) {
+                            const b = parseInt(p.bed);
+                            if (!isNaN(b)) p.bedNumber = b;
+                        }
+
+                        // تطبيع الأتوبيسات والمقاعد
+                        if (!p.busNumber && p.bus) {
+                            const busDigits = String(p.bus).match(/\d+/);
+                            if (busDigits) p.busNumber = parseInt(busDigits[0]);
+                        }
                         if (!p.bus && p.busNumber) p.bus = 'أتوبيس ' + p.busNumber;
+
+                        if (!p.seatNumber && p.seat) {
+                            const sNum = parseInt(p.seat);
+                            if (!isNaN(sNum)) p.seatNumber = sNum;
+                        }
                         if (!p.seat && p.seatNumber) p.seat = String(p.seatNumber);
                     });
                 }
 
-                // 2. إذا تم ضبط رابط Google Apps Script، نجلب أحدث البيانات الحية من Google Sheets
+                // 2. مزامنة سحابية خلفية من Google Sheets بدون تعطيل فتح الصفحة (Non-blocking Fast Load)
                 const gasUrl = this.getGasUrl();
                 if (gasUrl) {
-                    try {
-                        const liveGasData = await this.fetchFromGAS(gasUrl);
+                    this.fetchFromGAS(gasUrl).then(liveGasData => {
                         if (liveGasData && Array.isArray(liveGasData) && liveGasData.length > 0) {
                             this.mergeGASItemsIntoConference(dataCopy, liveGasData);
                             console.log('✅ تم جلب ومزامنة البيانات الحية من Google Sheets بنجاح!');
+                            window.dispatchEvent(new CustomEvent('yc_live_data_updated', { detail: dataCopy }));
                         }
-                    } catch (gasErr) {
+                    }).catch(gasErr => {
                         console.warn('DataService: يتعذر الجلب من Google Apps Script حالياً، الاعتماد على البيانات المحلية:', gasErr);
-                    }
+                    });
                 }
 
                 this.cachedData = dataCopy;
@@ -133,19 +178,33 @@ class DataService {
     }
 
     /**
-     * جلب البيانات مباشرة من رابط Google Apps Script Web App
+     * جلب البيانات مباشرة من رابط Google Apps Script Web App بمهلة زمنية محددة
      */
     static async fetchFromGAS(url) {
         const targetUrl = url || this.getGasUrl();
         if (!targetUrl) return null;
 
-        const res = await fetch(targetUrl);
-        if (!res.ok) throw new Error('HTTP Error: ' + res.status);
-        const json = await res.json();
-        if (json.status === 'success' && Array.isArray(json.data)) {
-            return json.data;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+        try {
+            const res = await fetch(targetUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (!res.ok) throw new Error('HTTP Error: ' + res.status);
+            const json = await res.json();
+            if (json.status === 'success' && Array.isArray(json.data)) {
+                return json.data;
+            }
+            return null;
+        } catch (err) {
+            clearTimeout(timeoutId);
+            if (err.name === 'AbortError') {
+                console.warn('DataService: تجاوز مهلة الانتظار لـ Google Apps Script (3.5s timeout)');
+            } else {
+                console.warn('DataService.fetchFromGAS Error:', err);
+            }
+            return null;
         }
-        return null;
     }
 
     /**
@@ -168,11 +227,15 @@ class DataService {
 
         try {
             this.invalidateCache();
+            const fullPayload = {
+                ...payload,
+                token: payload.token || this.getGasToken()
+            };
             const res = await fetch(gasUrl, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(fullPayload)
             });
             return { status: 'success', message: 'تم إرسال الطلب للسيرفر السحابي بنجاح' };
         } catch (err) {

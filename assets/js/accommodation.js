@@ -456,14 +456,31 @@
 
     /* ─── التهيئة الأولى ─── */
     function buildRoomsFromData(data) {
+        const participants = data.participants || [];
         window.rooms = (data.rooms || []).map(room => {
             const persons = Array(room.capacity).fill('');
-            const roomParticipants = (data.participants || []).filter(p => p.roomId === room.id);
+            const roomDigits = room.id.match(/\d+/)?.[0] || '';
+            
+            const roomParticipants = participants.filter(p => {
+                if (p.roomId === room.id) return true;
+                if (p.room && roomDigits && String(p.room).includes(roomDigits)) return true;
+                if (p.room && p.room === room.name) return true;
+                return false;
+            });
+
             roomParticipants.forEach(p => {
-                if (p.bedNumber && p.bedNumber <= room.capacity) {
-                    persons[p.bedNumber - 1] = p.name;
+                const bNum = parseInt(p.bedNumber || p.bed);
+                if (!isNaN(bNum) && bNum >= 1 && bNum <= room.capacity && !persons[bNum - 1]) {
+                    persons[bNum - 1] = p.name;
+                } else {
+                    // إسناد تلقائي لأول سرير فاضي في الغرفة
+                    const freeIdx = persons.findIndex(name => !name);
+                    if (freeIdx !== -1) {
+                        persons[freeIdx] = p.name;
+                    }
                 }
             });
+
             return {
                 id: room.id,
                 name: room.name,
@@ -478,5 +495,25 @@
         initSearchOverlay();
     }
 
-    DataService.loadConference().then(data => buildRoomsFromData(data)).catch(err => console.error('[accommodation] Error loading conference data:', err));
+    function initAccommodationData() {
+        if (window.DataService) {
+            window.DataService.loadConference()
+                .then(data => buildRoomsFromData(data))
+                .catch(err => console.error('[accommodation] Error loading conference data:', err));
+        } else {
+            setTimeout(initAccommodationData, 50);
+        }
+    }
+
+    window.addEventListener('yc_live_data_updated', function(e) {
+        if (e.detail) {
+            buildRoomsFromData(e.detail);
+        }
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAccommodationData);
+    } else {
+        initAccommodationData();
+    }
 })();

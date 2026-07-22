@@ -391,6 +391,14 @@ $(document).ready(function() {
             console.error('فشل تحميل بيانات الأتوبيسات:', err);
             showErrorOverlay('تعذّر تحميل بيانات المقاعد. الرجاء تحديث الصفحة.');
         });
+
+        window.addEventListener('yc_live_data_updated', function(e) {
+            if (e.detail && Array.isArray(e.detail.participants)) {
+                passengers = e.detail.participants;
+                renderBusSeats();
+                renderBusStats();
+            }
+        });
     }
 });
 

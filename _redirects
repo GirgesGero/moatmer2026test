@@ -1,7 +1,3 @@
 /welcome.html      /pages/home.html              301
 /prayer-morning    /pages/prayer-morning.html   301
 /%D8%B5%D9%84%D8%A7%D8%A9.html         /pages/prayer.html           301
-
-# حماية أدوات الإدارة في الإنتاج لمنع وصول المستخدمين العاديين
-/manage-passengers.html    /404.html   404
-/group-evaluation.html      /404.html   404

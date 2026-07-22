@@ -1014,9 +1014,16 @@
         (function() {
             'use strict';
 
-            // 1. البيانات والثوابت
-            const DEFAULT_PASSWORD = "Elkarooz2026+";
-            const DEFAULT_USERNAME = "elkarooz";
+            // 1. البيانات والثوابت المأمنة بصمة SHA-256
+            const AUTH_USER_HASH = "77a3f439969f80c707af7791884a8c135b64f7bf2faf314bb69d6e5e2e5e88c3";
+            const AUTH_PASS_HASH = "f5b9f57cbea8143a47a75f0c45a308b65f7f724ee87dd5bb99727c863744e423";
+
+            async function hashSHA256(str) {
+                const encoder = new TextEncoder();
+                const data = encoder.encode(str);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+            }
             
             const ACTIVITIES_METADATA = {
                 "1": [
@@ -1110,12 +1117,15 @@
                     }
                 });
 
-                $('#login-form').submit(function(e) {
+                $('#login-form').submit(async function(e) {
                     e.preventDefault();
                     const user = $('#username').val().trim();
                     const pass = $('#password').val().trim();
 
-                    if (user === DEFAULT_USERNAME && pass === DEFAULT_PASSWORD) {
+                    const uHash = await hashSHA256(user);
+                    const pHash = await hashSHA256(pass);
+
+                    if (uHash === AUTH_USER_HASH && pHash === AUTH_PASS_HASH) {
                         sessionStorage.setItem('eval_admin_logged_in', 'true');
                         $('#login-alert').addClass('d-none');
                         checkAuthentication();

@@ -358,6 +358,35 @@
         }
         .edit-select:focus { border-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow); }
         .edit-select option { background: var(--bg-dark); color: var(--text-main); }
+
+        @keyframes shieldFloat {
+            0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 0 25px rgba(56, 189, 248, 0.3); }
+            50% { transform: translateY(-6px) scale(1.03); box-shadow: 0 0 35px rgba(56, 189, 248, 0.55); }
+        }
+        .auth-modal-input {
+            width: 100% !important;
+            padding: 13px 44px 13px 44px !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(56, 189, 248, 0.3) !important;
+            background: rgba(15, 23, 42, 0.85) !important;
+            color: #ffffff !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            text-align: right !important;
+            direction: ltr !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            outline: none !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        }
+        .auth-modal-input:focus {
+            border-color: #38bdf8 !important;
+            background: rgba(15, 23, 42, 0.95) !important;
+            box-shadow: 0 0 22px rgba(56, 189, 248, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        }
+        .auth-modal-input::placeholder {
+            color: #64748b !important;
+            font-weight: 500 !important;
+        }
         .edit-actions { display: flex; gap: 8px; margin-top: 18px; }
         .edit-btn {
             flex: 1; padding: 12px; border-radius: 12px; font-size: 0.9rem;
@@ -651,7 +680,9 @@
                     <div class="nav-subtitle">مؤتمر الشباب 2026</div>
                 </div>
             </a>
-            <div style="width: 60px;"></div>
+            <button onclick="masterAdminLogout()" class="action-btn secondary" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
+                <i class="bi bi-box-arrow-right me-1"></i> خروج
+            </button>
         </div>
     </nav>
 
@@ -679,6 +710,7 @@
         <div class="section-tab active" data-section="buses" onclick="switchSection('buses')">🚍 الأتوبيسات</div>
         <div class="section-tab" data-section="rooms" onclick="switchSection('rooms')">🛏️ الغرف والسكن</div>
         <div class="section-tab" data-section="groups" onclick="switchSection('groups')">👥 المجموعات والنقاط</div>
+        <div class="section-tab" data-section="admin-scores" onclick="switchSection('admin-scores')">⚖️ إحصائيات ونقاط الحكام</div>
         <div class="section-tab" data-section="schedule" onclick="switchSection('schedule')">📅 برنامج الأيام</div>
         <div class="section-tab" data-section="cloud" onclick="switchSection('cloud')">☁️ السحابة والتقييمات</div>
     </div>
@@ -744,8 +776,15 @@
 
         <!-- Rooms Residents List -->
         <div class="passenger-list" id="roomsPassengerListSection">
-            <div class="list-header">
-                <span class="list-title"><i class="bi bi-house-door-fill me-1"></i> قائمة المقيمين</span>
+            <div class="list-header" style="flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; gap: 6px;">
+                    <button class="action-btn primary" id="btnRoomsAssigned" onclick="switchRoomsListFilter('assigned')" style="padding: 4px 10px; font-size: 0.75rem;">
+                        <i class="bi bi-house-door-fill me-1"></i> المسكنين بالدور
+                    </button>
+                    <button class="action-btn secondary" id="btnRoomsUnassigned" onclick="switchRoomsListFilter('unassigned')" style="padding: 4px 10px; font-size: 0.75rem;">
+                        <i class="bi bi-person-exclamation me-1"></i> غير المسكنين
+                    </button>
+                </div>
                 <span class="list-count" id="roomsListCount">0 مقيم</span>
             </div>
             <div id="roomsPassengerList"></div>
@@ -789,9 +828,9 @@
                     <button class="action-btn primary" onclick="pushAllToSheetFromMaster()" style="padding: 6px 14px; font-size: 0.8rem; background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
                         <i class="bi bi-cloud-arrow-up-fill me-1"></i> رفع كافة البيانات للشيت
                     </button>
-                    <a href="admin.html" class="action-btn secondary" style="padding: 6px 14px; font-size: 0.8rem; text-decoration: none;">
-                        <i class="bi bi-gear-wide-connected me-1"></i> فتح لوحة admin.html
-                    </a>
+                    <button onclick="switchSection('admin-scores')" class="action-btn secondary" style="padding: 6px 14px; font-size: 0.8rem;">
+                        <i class="bi bi-gear-wide-connected me-1"></i> إعدادات الأمان والنقاط
+                    </button>
                 </div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
@@ -861,6 +900,96 @@
                 <i class="bi bi-arrow-repeat"></i> استبدال الكل
             </button>
         </div>
+    </div>
+
+    <!-- ADMIN SCORES & JUDGES PANEL -->
+    <div id="admin-scores-panel" style="display: none; padding: 0 15px 30px; max-width: 900px; margin: 0 auto;">
+        
+        <!-- Cloud Sync & Settings Bar -->
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 20px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; backdrop-filter: blur(15px);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;">
+                <div>
+                    <strong style="color: #22d3ee; font-size: 0.95rem;"><i class="bi bi-shield-check me-1"></i> إعدادات السيرفر ومفتاح الأمان (Security Token):</strong>
+                    <div style="font-size: 0.78rem; color: #94a3b8;">توصيل Google Apps Script للرفع المباشر وتخصيص رمز الحماية</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="action-btn secondary" onclick="openGuideModalMaster()" style="padding: 6px 12px; font-size: 0.8rem; background: rgba(124, 58, 237, 0.2); border-color: rgba(124, 58, 237, 0.4); color: #c084fc;">
+                        <i class="bi bi-code-slash me-1"></i> كود Code.gs
+                    </button>
+                    <button class="action-btn primary" onclick="saveGasSettingsFromMaster()" style="padding: 6px 14px; font-size: 0.8rem;">
+                        <i class="bi bi-check2-circle me-1"></i> حفظ وتوصيل
+                    </button>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="url" id="masterGasUrlInput" class="edit-input" style="flex: 2; min-width: 260px; text-align: left; direction: ltr; font-family: monospace; font-size: 0.82rem;" placeholder="https://script.google.com/macros/s/AKfycbx.../exec">
+                <input type="password" id="masterGasTokenInput" class="edit-input" style="flex: 1; min-width: 180px; text-align: center; font-size: 0.82rem;" placeholder="مفتاح الأمان (Security Token)">
+            </div>
+        </div>
+
+        <!-- 3 Judges & Custom Evaluation Setup -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1.5rem; backdrop-filter: blur(15px);">
+            <div style="font-weight: 800; font-size: 1rem; color: var(--primary-light); margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                <i class="bi bi-award-fill text-warning"></i> ضبط وتسمية الحكام والتقييم (يدوياً)
+            </div>
+            <div class="row g-3">
+                <div class="col-md-3 col-6">
+                    <label style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700; display: block; margin-bottom: 4px;">الحكم الأول</label>
+                    <input type="text" id="judge1Name" class="edit-input" style="font-size: 0.85rem;" value="الحكم 1" placeholder="اسم الحكم الأول" oninput="updateJudgesHeaders()">
+                </div>
+                <div class="col-md-3 col-6">
+                    <label style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700; display: block; margin-bottom: 4px;">الحكم الثاني</label>
+                    <input type="text" id="judge2Name" class="edit-input" style="font-size: 0.85rem;" value="الحكم 2" placeholder="اسم الحكم الثاني" oninput="updateJudgesHeaders()">
+                </div>
+                <div class="col-md-3 col-6">
+                    <label style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700; display: block; margin-bottom: 4px;">الحكم الثالث</label>
+                    <input type="text" id="judge3Name" class="edit-input" style="font-size: 0.85rem;" value="الحكم 3" placeholder="اسم الحكم الثالث" oninput="updateJudgesHeaders()">
+                </div>
+                <div class="col-md-3 col-6">
+                    <label style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700; display: block; margin-bottom: 4px;">الدرجة القصوى</label>
+                    <input type="number" id="evalMaxPoints" class="edit-input" style="font-size: 0.85rem;" value="100" min="1" placeholder="100">
+                </div>
+                <div class="col-12">
+                    <label style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700; display: block; margin-bottom: 4px;">عنوان التقييم / النشاط الحالي</label>
+                    <input type="text" id="evalTitleInput" class="edit-input" style="font-size: 0.88rem; text-align: right;" value="تقييم الورشة الأولى" placeholder="مثال: تقييم مسابقة الألحان / التزام الورش...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Group Evaluation Table -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1.5rem; backdrop-filter: blur(15px);">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+                <div>
+                    <h3 style="font-weight: 900; font-size: 1.05rem; color: #fff; margin: 0;"><i class="bi bi-person-check-fill text-info me-1"></i> رصد درجات الحكام للمجموعات</h3>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">النقاط المضافة تحسب وتعتمد على مستوى المجموعات بالكامل وليس الأشخاص فردياً</div>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: center;">
+                    <thead>
+                        <tr style="background: rgba(6, 182, 212, 0.12); color: #22d3ee; border-bottom: 1px solid rgba(6, 182, 212, 0.2);">
+                            <th style="padding: 10px; text-align: right;">المجموعة</th>
+                            <th style="padding: 10px;" id="thJudge1">الحكم 1</th>
+                            <th style="padding: 10px;" id="thJudge2">الحكم 2</th>
+                            <th style="padding: 10px;" id="thJudge3">الحكم 3</th>
+                            <th style="padding: 10px;">المجموع</th>
+                            <th style="padding: 10px;">الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="groupsEvalTableBody">
+                        <!-- Rendered dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Group Points Summary Cards -->
+        <div style="font-weight: 800; font-size: 1rem; color: var(--primary-light); margin-bottom: 12px;"><i class="bi bi-trophy-fill text-warning me-1"></i> إجمالي نقاط المجموعات الحالي:</div>
+        <div class="row g-3" id="groupSummaryCardsContainer">
+            <!-- Rendered dynamically -->
+        </div>
+
     </div>
 
     <!-- Unified Edit Modal -->
@@ -999,6 +1128,83 @@
                 <button class="edit-btn btn-save" onclick="saveAddPassenger()"><i class="bi bi-plus-lg me-1"></i> إضافة</button>
                 <button class="edit-btn btn-cancel" onclick="closeAddModal()"><i class="bi bi-x-lg me-1"></i> إلغاء</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Guide Modal for Code.gs -->
+    <div class="edit-overlay" id="guideModalMaster" style="z-index: 210;">
+        <div class="edit-box" style="max-width: 550px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="font-size: 1.1rem; font-weight: 900; color: #22d3ee; margin: 0;"><i class="bi bi-code-slash me-1"></i> كود Google Apps Script (Code.gs)</h3>
+                <button onclick="closeGuideModalMaster()" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <p style="font-size: 0.78rem; color: #cbd5e1; line-height: 1.5; margin-bottom: 10px;">
+                انسخ كود السكربت واستبدل أي كود موجود في (Extensions ➔ Apps Script) ثم قم بإعادة النشر (Deploy ➔ New deployment).
+            </p>
+            <div style="position: relative;">
+                <textarea id="gasScriptCodeMaster" class="edit-input" style="width: 100%; height: 200px; font-size: 0.75rem; direction: ltr; font-family: monospace; text-align: left;" readonly></textarea>
+                <button onclick="copyGasCodeMaster()" class="action-btn primary" style="position: absolute; top: 8px; left: 8px; padding: 4px 10px; font-size: 0.75rem;">
+                    <i class="bi bi-clipboard me-1"></i> نسخ الكود
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master Admin Auth Modal -->
+    <div class="edit-overlay" id="masterAdminAuthModal" style="display: flex; z-index: 2000; background: rgba(4, 8, 20, 0.9); backdrop-filter: blur(24px);">
+        <div class="edit-box" style="max-width: 440px; width: 92%; text-align: center; background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.92)); border: 1px solid rgba(56, 189, 248, 0.35); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(14, 165, 233, 0.25); border-radius: 28px; padding: 2.2rem 1.8rem; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -60px; right: -60px; width: 140px; height: 140px; background: rgba(56, 189, 248, 0.2); filter: blur(50px); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -60px; left: -60px; width: 140px; height: 140px; background: rgba(16, 185, 129, 0.2); filter: blur(50px); border-radius: 50%;"></div>
+            
+            <div style="width: 76px; height: 76px; margin: 0 auto 1.1rem; background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(15, 23, 42, 0.8) 70%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3); animation: shieldFloat 3s ease-in-out infinite;">
+                <i class="bi bi-shield-lock-fill" style="font-size: 2.5rem; color: #38bdf8; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));"></i>
+            </div>
+            
+            <h3 style="font-size: 1.35rem; font-weight: 900; color: #fff; margin-bottom: 0.35rem; letter-spacing: -0.5px;">تسجيل دخول الإدارة</h3>
+            <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 1.6rem; line-height: 1.5;">أدخل اسم المستخدم وكلمة المرور للوصول إلى لوحة التحكم</p>
+            
+            <form onsubmit="handleMasterAdminLogin(event)" style="position: relative; z-index: 2;">
+                <!-- Username Input -->
+                <div style="text-align: right; margin-bottom: 1.2rem;">
+                    <label style="font-size: 0.82rem; font-weight: 800; color: #cbd5e1; margin-bottom: 7px; display: block;">
+                        <i class="bi bi-person-badge-fill me-1" style="color: #38bdf8;"></i> اسم المستخدم
+                    </label>
+                    <div style="position: relative;">
+                        <input type="text" id="masterAdminUser" class="auth-modal-input" required placeholder="ادخل اسم المستخدم..." autocomplete="off">
+                        <i class="bi bi-person-fill" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #38bdf8; font-size: 1.1rem; pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div style="text-align: right; margin-bottom: 1.25rem;">
+                    <label style="font-size: 0.82rem; font-weight: 800; color: #cbd5e1; margin-bottom: 7px; display: block;">
+                        <i class="bi bi-shield-key-fill me-1" style="color: #38bdf8;"></i> كلمة المرور
+                    </label>
+                    <div style="position: relative;">
+                        <input type="password" id="masterAdminPass" class="auth-modal-input" required placeholder="ادخل كلمة المرور..." autocomplete="off">
+                        <i class="bi bi-key-fill" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #38bdf8; font-size: 1.1rem; pointer-events: none;"></i>
+                        <button type="button" onclick="togglePasswordVisibility('masterAdminPass', 'masterPassEyeIcon')" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #94a3b8; font-size: 1.1rem; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;" title="إظهار/إخفاء كلمة المرور">
+                            <i class="bi bi-eye-slash" id="masterPassEyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="masterLoginHint" style="color: #fbbf24; font-size: 0.78rem; font-weight: 800; margin-bottom: 12px; display: none; background: rgba(245, 158, 11, 0.12); border: 1px dashed rgba(245, 158, 11, 0.5); padding: 8px 12px; border-radius: 12px; backdrop-filter: blur(10px);">
+                    🔒 املأ اسم المستخدم وكلمة المرور أولاً عشان تقدر تضغط!
+                </div>
+
+                <div id="masterLoginErrorMsg" style="color: #f87171; font-size: 0.82rem; font-weight: 800; margin-bottom: 12px; display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); padding: 9px 12px; border-radius: 12px;">
+                    ❌ اسم المستخدم أو كلمة المرور غير صحيحة
+                </div>
+
+                <div id="masterSubmitBtnWrapper" style="position: relative; height: 52px; width: 100%; margin-top: 10px;">
+                    <button type="submit" id="masterLoginSubmitBtn" class="action-btn primary" style="width: 100%; height: 100%; font-size: 1rem; font-weight: 900; border-radius: 14px; background: linear-gradient(135deg, rgba(6,182,212,0.35), rgba(16,185,129,0.25)); border: 1px solid rgba(56, 189, 248, 0.4); color: #fff; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, box-shadow 0.3s ease; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        دخول اللوحة
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

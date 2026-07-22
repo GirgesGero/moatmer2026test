@@ -60,22 +60,25 @@ async function loadPartials() {
 
 function _fixPartialLinks() {
     const isPagesDir = location.pathname.includes('/pages/');
-    const pageNavLinks = document.querySelectorAll('#app-navbar-slot a, #app-bottomnav-slot a');
+    const pageNavLinks = document.querySelectorAll('#app-navbar-slot a, #app-bottomnav-slot a, #nav-menu-overlay a');
     pageNavLinks.forEach(link => {
         let href = link.getAttribute('href');
         if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript')) return;
         
+        const cleanHref = href.replace(/^(\.\.\/|pages\/)/, '');
+        const isRootFile = (cleanHref === 'manage-passengers.html' || cleanHref === 'admin.html' || cleanHref === 'group-evaluation.html' || cleanHref === 'index.html');
+
         if (isPagesDir) {
-            // الصفحات بداخل مجلد pages/
-            if (href.startsWith('pages/')) {
-                link.setAttribute('href', href.replace('pages/', ''));
+            if (isRootFile) {
+                link.setAttribute('href', '../' + cleanHref);
+            } else {
+                link.setAttribute('href', cleanHref);
             }
         } else {
-            // الصفحات بداخل المجلد الرئيسي root
-            if (!href.startsWith('../') && !href.startsWith('pages/')) {
-                link.setAttribute('href', 'pages/' + href);
-            } else if (href.startsWith('../')) {
-                link.setAttribute('href', href.replace('../', ''));
+            if (isRootFile) {
+                link.setAttribute('href', cleanHref);
+            } else {
+                link.setAttribute('href', 'pages/' + cleanHref);
             }
         }
     });

@@ -16,6 +16,10 @@
 // إذا قمت بإنشاء السكربت بشكل مستقل من script.google.com، يمكنك وضع ID الشيت هنا (الموجود في رابط الشيت)
 const SPREADSHEET_ID = ''; 
 
+// مفتاح الأمان لحماية العمليات الحساسة (الحذف، التعديل، الاستيراد الشامل)
+// يرجى مطابقة هذا المفتاح في لوحة التحكم (admin.html)
+const SECURITY_TOKEN = 'YC2026_SECURE_TOKEN_8921';
+
 const SHEET_NAME = 'Attendees';
 const HEADERS = ['الاسم', 'المجموعة', 'النقاط', 'الغرفة', 'الاتوبيس', 'المقعد', 'رايك فى المؤتمر', 'ترشيح الرحلة الجاية'];
 
@@ -107,6 +111,13 @@ function doPost(e) {
     
     if (action === 'get') {
       return doGet(e);
+    }
+
+    // فحص التوكين الأمني للعمليات الإدارية
+    if (action !== 'addFeedback') {
+      if (SECURITY_TOKEN && body.token !== SECURITY_TOKEN) {
+        return responseJSON({ status: 'error', message: 'غير مصرح: مفتاح الأمان (Security Token) غير صحيح أو مفقود.' });
+      }
     }
 
     if (action === 'updateGroupPoints') {
