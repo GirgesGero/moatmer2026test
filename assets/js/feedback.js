@@ -63,7 +63,12 @@
         }
 
         const starsString = '⭐'.repeat(ratingVal);
-        const formattedExperience = `[التقييم: ${starsString}]\n${experience}`;
+        const formattedExperience = `[التقييم: ${starsString}] ${experience}`;
+
+        // 1. الإرسال إلى طبقة Google Apps Script الموحدة
+        if (window.DataService && typeof window.DataService.submitFeedback === 'function') {
+            window.DataService.submitFeedback(name, formattedExperience, destination);
+        }
 
         const deviceInfo = getDeviceInfo();
         const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfw4IwP36zSLoYRO5k5YKCkC7BMcnxmr3emWVtMZr-QDF52Fw/formResponse';
@@ -74,7 +79,7 @@
             data: {
                 'entry.1430254715': name,
                 'entry.216982914': destination,
-                'entry.1118671607': formattedExperience, // الحقل الجديد لرأيه في التجربة مع النجوم
+                'entry.1118671607': formattedExperience,
                 'entry.2017420717': `${deviceInfo.date} ${deviceInfo.time}`,
                 'entry.661154536': `${deviceInfo.deviceType} - ${deviceInfo.os} - ${deviceInfo.browser}`
             },

@@ -30,22 +30,26 @@
     {
       "id": "g1",
       "name": "مجموعة 1",
-      "score": 96
+      "score": 100,
+      "points": 100
     },
     {
       "id": "g2",
       "name": "مجموعة 2",
-      "score": 88
+      "score": 85,
+      "points": 85
     },
     {
       "id": "g3",
       "name": "مجموعة 3",
-      "score": 92
+      "score": 95,
+      "points": 95
     },
     {
       "id": "g4",
       "name": "مجموعة 4",
-      "score": 83
+      "score": 75,
+      "points": 75
     }
   ],
   "buses": [
@@ -238,7 +242,9 @@
       "roomId": "r101",
       "bedNumber": 1,
       "busNumber": 1,
-      "seatNumber": 1
+      "seatNumber": 1,
+      "feedback": "مؤتمر ممتاز والتنظيم رائع جداً وسعداء بالورش",
+      "nextTrip": "رحلة دير سانت كاترين وسيناء"
     },
     {
       "id": "p002",
@@ -247,7 +253,9 @@
       "roomId": "r101",
       "bedNumber": 2,
       "busNumber": 1,
-      "seatNumber": 2
+      "seatNumber": 2,
+      "feedback": "الفقرات الروحية والمحاضرات ممتازة جداً",
+      "nextTrip": "مؤتمر الأقصر وأسوان البحرية"
     },
     {
       "id": "p003",
@@ -256,7 +264,9 @@
       "roomId": "r101",
       "bedNumber": 3,
       "busNumber": 1,
-      "seatNumber": 3
+      "seatNumber": 3,
+      "feedback": "الألعاب والتحديات كانت حماسية للغاية",
+      "nextTrip": "رحلة وادي الريان والفيوم"
     },
     {
       "id": "p004",
@@ -265,7 +275,9 @@
       "roomId": "r101",
       "bedNumber": 4,
       "busNumber": 1,
-      "seatNumber": 4
+      "seatNumber": 4,
+      "feedback": "الإقامة والتسكين مريح جداً شكراً للخدام",
+      "nextTrip": "رحلة الإسكندرية ومتحف الأحياء"
     },
     {
       "id": "p005",
@@ -274,7 +286,9 @@
       "roomId": "r101",
       "bedNumber": 5,
       "busNumber": 1,
-      "seatNumber": 5
+      "seatNumber": 5,
+      "feedback": "الترانيم والقداس الإلهي بركة كبيرة",
+      "nextTrip": "مؤتمر الغردقة والدير الأحمر"
     },
     {
       "id": "p006",
@@ -727,32 +741,32 @@
     {
       "id": "d2-a1",
       "day": 2,
-      "title": "صلاة",
+      "title": "القداس الإلهي",
       "type": "prayer",
-      "time": "08:00",
+      "time": "07:00",
       "endTime": "09:00",
-      "place": "الكنيسة / القاعة الرئيسية",
-      "notes": "صلاة باكر جماعية"
+      "place": "الكنيسة",
+      "notes": "بركة الصباح والقداس الإلهي"
     },
     {
       "id": "d2-a2",
       "day": 2,
-      "title": "بيسين",
-      "type": "free",
+      "title": "فطار",
+      "type": "meal",
       "time": "09:00",
-      "endTime": "11:00",
-      "place": "حمام السباحة",
-      "notes": "ترفيه وسباحة"
+      "endTime": "10:00",
+      "place": "المطعم",
+      "notes": "تناول وجبة الإفطار"
     },
     {
       "id": "d2-a3",
       "day": 2,
-      "title": "فطار",
-      "type": "meal",
-      "time": "11:00",
+      "title": "بيسين",
+      "type": "free",
+      "time": "10:00",
       "endTime": "12:00",
-      "place": "المطعم",
-      "notes": "تناول وجبة الإفطار"
+      "place": "حمام السباحة",
+      "notes": "ترفيه وسباحة"
     },
     {
       "id": "d2-a4",
@@ -839,12 +853,12 @@
     {
       "id": "d3-a1",
       "day": 3,
-      "title": "القداس الإلهي",
+      "title": "صلاة",
       "type": "prayer",
-      "time": "07:00",
+      "time": "08:00",
       "endTime": "09:00",
-      "place": "الكنيسة",
-      "notes": "بركة الصباح والقداس الإلهي"
+      "place": "الكنيسة / القاعة الرئيسية",
+      "notes": "صلاة باكر جماعية"
     },
     {
       "id": "d3-a2",
@@ -950,6 +964,16 @@
     },
     {
       "id": "d4-a1",
+      "day": 4,
+      "title": "تسليم الغرف",
+      "type": "other",
+      "time": "",
+      "endTime": "",
+      "place": "الغرف",
+      "notes": "تجميع الأمتعة وتسليم مفاتيح الغرف"
+    },
+    {
+      "id": "d4-a2",
       "day": 4,
       "title": "الرحيل",
       "type": "travel",

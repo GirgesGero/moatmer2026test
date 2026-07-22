@@ -478,22 +478,5 @@
         initSearchOverlay();
     }
 
-    // قراءة البيانات: نعطي الأولوية للمسودة المحفوظة في localStorage
-    try {
-        const saved = localStorage.getItem('conference_db_draft');
-        if (saved) {
-            const draft = JSON.parse(saved);
-            if (draft && draft.db && draft.db.participants) {
-                console.log('[accommodation] قراءة البيانات من مسودة المتصفح');
-                buildRoomsFromData(draft.db);
-            } else {
-                throw new Error('مسودة غير مكتملة');
-            }
-        } else {
-            throw new Error('لا توجد مسودة');
-        }
-    } catch (e) {
-        console.log('[accommodation] الرجوع إلى DataService:', e.message);
-        DataService.loadConference().then(data => buildRoomsFromData(data));
-    }
+    DataService.loadConference().then(data => buildRoomsFromData(data)).catch(err => console.error('[accommodation] Error loading conference data:', err));
 })();

@@ -643,8 +643,8 @@
     <!-- Navbar -->
     <nav class="admin-navbar">
         <div class="nav-inner">
-            <a href="buses.html" class="back-link"><i class="bi bi-arrow-right"></i> رجوع</a>
-            <a href="home.html" class="nav-brand">
+            <a href="pages/buses.html" class="back-link"><i class="bi bi-arrow-right"></i> رجوع</a>
+            <a href="pages/home.html" class="nav-brand">
                 <div class="nav-brand-logo"><i class="bi bi-gear-fill"></i></div>
                 <div class="nav-brand-text">
                     <div class="nav-title">الإدارة الشاملة</div>
@@ -655,11 +655,32 @@
         </div>
     </nav>
 
+    <!-- Google Sheets Master Status Bar -->
+    <div style="margin: 12px 1rem 0; background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(16, 185, 129, 0.15)); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 16px; padding: 10px 16px; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 1.4rem; color: #34d399;"><i class="bi bi-file-earmark-spreadsheet-fill"></i></div>
+            <div>
+                <div style="font-weight: 900; color: #fff; font-size: 0.9rem;">إدارة بيانات Google Sheets المباشرة 📊</div>
+                <div style="font-size: 0.75rem; color: #cbd5e1;">مزامنة سحابية حية للأعمدة الـ 8 (الاسم، المجموعة، النقاط، الغرفة، الأتوبيس، المقعد، الآراء)</div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span id="masterCloudBadge" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 800;">
+                <i class="bi bi-cloud-check-fill me-1"></i> متصل بـ Google Sheets ✅
+            </span>
+            <button onclick="pushAllToSheetFromMaster()" style="background: #06b6d4; border: none; color: #fff; border-radius: 10px; padding: 6px 14px; font-size: 0.78rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);">
+                <i class="bi bi-cloud-arrow-up-fill me-1"></i> مزامنة سحابية الآن
+            </button>
+        </div>
+    </div>
+
     <!-- Section Tabs -->
     <div class="section-tabs">
         <div class="section-tab active" data-section="buses" onclick="switchSection('buses')">🚍 الأتوبيسات</div>
         <div class="section-tab" data-section="rooms" onclick="switchSection('rooms')">🛏️ الغرف والسكن</div>
-        <div class="section-tab" data-section="groups" onclick="switchSection('groups')">👥 المجموعات</div>
+        <div class="section-tab" data-section="groups" onclick="switchSection('groups')">👥 المجموعات والنقاط</div>
+        <div class="section-tab" data-section="schedule" onclick="switchSection('schedule')">📅 برنامج الأيام</div>
+        <div class="section-tab" data-section="cloud" onclick="switchSection('cloud')">☁️ السحابة والتقييمات</div>
     </div>
 
     <!-- Stats -->
@@ -737,6 +758,57 @@
         <div class="groups-board" id="groupsBoard"></div>
     </div>
 
+    <!-- SCHEDULE PANEL -->
+    <div id="schedule-panel" style="display:none; padding: 0 1rem; margin-bottom: 2rem;">
+        <div class="bus-tabs" id="daySubTabs" style="margin-bottom: 1rem;">
+            <div class="bus-tab active" data-day="1" onclick="switchScheduleDay(1)">📅 اليوم الأول</div>
+            <div class="bus-tab" data-day="2" onclick="switchScheduleDay(2)">📅 اليوم الثاني</div>
+            <div class="bus-tab" data-day="3" onclick="switchScheduleDay(3)">📅 اليوم الثالث</div>
+            <div class="bus-tab" data-day="4" onclick="switchScheduleDay(4)">📅 اليوم الرابع</div>
+        </div>
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 1rem; backdrop-filter: blur(10px);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px;">
+                <strong style="color: #22d3ee; font-size: 1rem;"><i class="bi bi-calendar-event me-1"></i> فعاليات وأجندة اليوم</strong>
+                <button class="action-btn primary" onclick="openAddEventModal()" style="padding: 6px 14px; font-size: 0.8rem;">
+                    <i class="bi bi-plus-circle-fill me-1"></i> إضافة فعالية جديدة
+                </button>
+            </div>
+            <div id="scheduleEventsList"></div>
+        </div>
+    </div>
+
+    <!-- CLOUD & FEEDBACK PANEL -->
+    <div id="cloud-panel" style="display:none; padding: 0 1rem; margin-bottom: 2rem;">
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 1.2rem; backdrop-filter: blur(10px); margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                <div>
+                    <strong style="color: #34d399; font-size: 1.05rem;"><i class="bi bi-cloud-check-fill me-1"></i> ربط وتوصيل Google Sheets</strong>
+                    <div style="font-size: 0.8rem; color: #94a3b8;">إدارة المزامنة الحية والشيت السحابي من هذه اللوحة</div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="action-btn primary" onclick="pushAllToSheetFromMaster()" style="padding: 6px 14px; font-size: 0.8rem; background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                        <i class="bi bi-cloud-arrow-up-fill me-1"></i> رفع كافة البيانات للشيت
+                    </button>
+                    <a href="admin.html" class="action-btn secondary" style="padding: 6px 14px; font-size: 0.8rem; text-decoration: none;">
+                        <i class="bi bi-gear-wide-connected me-1"></i> فتح لوحة admin.html
+                    </a>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="url" id="masterGasUrlInput" class="edit-input" placeholder="https://script.google.com/macros/s/.../exec" style="flex: 1; direction: ltr;">
+                <button onclick="saveMasterGasUrl()" class="action-btn primary" style="padding: 8px 16px; font-size: 0.85rem;">حفظ وتوصيل</button>
+            </div>
+        </div>
+
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 1.2rem; backdrop-filter: blur(10px);">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <strong style="color: #f472b6; font-size: 1rem;"><i class="bi bi-chat-left-heart-fill me-1"></i> آراء المشتركين وترشيحات الرحلات</strong>
+                <span class="count-badge" id="feedbacksMasterCount">0 رأي</span>
+            </div>
+            <div id="masterFeedbacksList"></div>
+        </div>
+    </div>
+
     <!-- Save Indicator -->
     <div class="save-indicator" id="saveIndicator">
         <div class="save-dot" id="saveDot"></div>
@@ -810,6 +882,8 @@
                     <select class="edit-select" id="editGroup"></select>
                 </div>
 
+
+
                 <!-- Bus Info -->
                 <div class="edit-section-title"><i class="bi bi-bus-front"></i> الأتوبيس والركوب</div>
                 <div class="row g-2">
@@ -874,6 +948,12 @@
                 <div class="edit-input-group">
                     <label><i class="bi bi-people me-1"></i> المجموعة</label>
                     <select class="edit-select" id="addGroup"></select>
+                </div>
+
+                <div class="edit-section-title"><i class="bi bi-star-fill text-warning me-1"></i> النقاط المبدئية</div>
+                <div class="edit-input-group">
+                    <label>النقاط</label>
+                    <input type="number" class="edit-input" id="addPoints" min="0" value="0" placeholder="0">
                 </div>
 
                 <div class="edit-section-title"><i class="bi bi-bus-front"></i> الأتوبيس والركوب</div>

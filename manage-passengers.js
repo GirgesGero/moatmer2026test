@@ -158,22 +158,45 @@ function renderStatsBar() {
         $('#statVal3').text(totalBeds).removeClass().addClass('stat-value cyan');
     } else if (currentSection === 'groups') {
         $('#statLabel1').text('إجمالي المشتركين');
-        $('#statLabel2').text('عدد المجموعات');
-        $('#statLabel3').text('متوسط أفراد المجموعة');
+        $('#statLabel2').text('مجموع النقاط');
+        $('#statLabel3').text('عدد المجموعات');
 
         const totalParticipants = participants.length;
-        const totalGroups = groups.length;
-        const avg = totalGroups > 0 ? (totalParticipants / totalGroups).toFixed(1) : 0;
+        const totalPoints = participants.reduce((acc, p) => acc + Number(p.points || 0), 0);
 
         $('#statVal1').text(totalParticipants).removeClass().addClass('stat-value purple');
-        $('#statVal2').text(totalGroups).removeClass().addClass('stat-value green');
-        $('#statVal3').text(avg).removeClass().addClass('stat-value cyan');
+        $('#statVal2').text(totalPoints).removeClass().addClass('stat-value green');
+        $('#statVal3').text(groups.length).removeClass().addClass('stat-value cyan');
+    } else if (currentSection === 'schedule') {
+        $('#statLabel1').text('اليوم النشط');
+        $('#statLabel2').text('عدد الفعاليات');
+        $('#statLabel3').text('إجمالي الأيام');
+
+        const activeDayEvents = (db.schedule && db.schedule[`day${currentScheduleDay}`]) ? db.schedule[`day${currentScheduleDay}`].length : 0;
+
+        $('#statVal1').text('اليوم ' + currentScheduleDay).removeClass().addClass('stat-value purple');
+        $('#statVal2').text(activeDayEvents).removeClass().addClass('stat-value green');
+        $('#statVal3').text('4 أيام').removeClass().addClass('stat-value cyan');
+    } else if (currentSection === 'cloud') {
+        $('#statLabel1').text('حالة المزامنة');
+        $('#statLabel2').text('إجمالي المشتركين');
+        $('#statLabel3').text('التقييمات المسجلة');
+
+        const isCloudConnected = window.DataService && window.DataService.getGasUrl();
+
+        $('#statVal1').text(isCloudConnected ? 'متصل ✅' : 'محلي ⚠️').removeClass().addClass(isCloudConnected ? 'stat-value green' : 'stat-value purple');
+        $('#statVal2').text(participants.length).removeClass().addClass('stat-value cyan');
+        
+        let feedbacksCount = 0;
+        try {
+            feedbacksCount = JSON.parse(localStorage.getItem('yc2_user_feedbacks') || '[]').length;
+        } catch (e) {}
+        $('#statVal3').text(feedbacksCount).removeClass().addClass('stat-value green');
     }
 }
 
-/* ========================================================
-   منطق تبديل الأقسام وتعبئة القوائم المنسدلة
-   ======================================================== */
+let currentScheduleDay = 1;
+
 function switchSection(section) {
     currentSection = section;
 
@@ -183,6 +206,8 @@ function switchSection(section) {
     $('#buses-panel').toggle(section === 'buses');
     $('#rooms-panel').toggle(section === 'rooms');
     $('#groups-panel').toggle(section === 'groups');
+    $('#schedule-panel').toggle(section === 'schedule');
+    $('#cloud-panel').toggle(section === 'cloud');
 
     $('#searchInput').val('');
 
@@ -224,6 +249,10 @@ function refreshAll() {
         renderRoomsPassengerList();
     } else if (currentSection === 'groups') {
         renderGroupsBoard();
+    } else if (currentSection === 'schedule') {
+        renderSchedulePanel();
+    } else if (currentSection === 'cloud') {
+        renderCloudPanel();
     }
 }
 
@@ -231,7 +260,8 @@ function refreshAll() {
    دالة بناء العنصر الموحد للمشترك
    ======================================================== */
 function passengerItemHtml(p, badgeText) {
-    const groupName = db.groups && p.groupId ? (db.groups.find(g => g.id === p.groupId)?.name || '') : '';
+    const groupObj = db.groups && p.groupId ? db.groups.find(g => g.id === p.groupId) : null;
+    const groupName = groupObj ? groupObj.name : '';
     const roomName = db.rooms && p.roomId ? (db.rooms.find(r => r.id === p.roomId)?.name || '') : '';
     const bedLbl = p.bedNumber ? `سرير ${p.bedNumber}` : '';
     const busLbl = p.busNumber ? `أتوبيس ${p.busNumber}` : '';
@@ -248,7 +278,9 @@ function passengerItemHtml(p, badgeText) {
     return `<div class="passenger-item" ${dragAttr} onclick="openEdit('${p.id}')">
         <div class="p-seat-badge">${badgeText}</div>
         <div class="p-info">
-            <div class="p-name">${escapeHTML(p.name)}</div>
+            <div class="p-name">
+                <span>${escapeHTML(p.name)}</span>
+            </div>
             <div class="p-details">${escapeHTML(detailsStr)}</div>
         </div>
         <div class="p-edit-btn" onclick="event.stopPropagation(); openEdit('${p.id}')" title="تعديل"><i class="bi bi-pencil"></i></div>
@@ -577,23 +609,32 @@ function renderGroupsBoard() {
             membersHtml = '<div style="text-align:center;color:var(--text-muted);font-size:.75rem;padding:20px 0;">لا يوجد أعضاء</div>';
         }
 
+        const pts = Number(g.points || 0);
+        const isWinner = pts >= 100;
+
         html += `<div class="group-column" data-group="${g.id}" 
             ondragover="event.preventDefault(); this.classList.add('drag-over')" 
             ondragleave="this.classList.remove('drag-over')"
             ondrop="this.classList.remove('drag-over'); onDropInGroup(event, '${g.id}')">
             <div class="group-column-title" style="flex-direction: column; align-items: stretch; gap: 6px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                    <span style="font-weight: 800;">${escapeHTML(g.name)}</span>
-                    <span class="count-badge">${members.length}</span>
+                    <span style="font-weight: 900; font-size: 0.95rem;">${escapeHTML(g.name)}</span>
+                    <span class="count-badge">${members.length} عضو</span>
                 </div>
                 ${g.id !== 'none' ? `
-                <div class="group-score-control" style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px; background: rgba(0,0,0,0.18); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-                    <span style="font-size: 0.72rem; color: var(--text-muted);"><i class="bi bi-trophy text-warning me-1"></i> سكور التحدي:</span>
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <input type="number" class="group-score-input" min="0" max="100" value="${g.score || 0}" 
-                            style="width: 44px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: #fbbf24; border-radius: 6px; text-align: center; font-size: 0.78rem; padding: 1px 3px; font-weight: 800;"
-                            onchange="updateGroupScore('${g.id}', this.value)">
-                        <span style="font-size: 0.72rem; color: var(--text-muted);">%</span>
+                <div style="background: ${isWinner ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.12)'}; border: 1px solid ${isWinner ? '#10b981' : 'rgba(245, 158, 11, 0.3)'}; border-radius: 10px; padding: 6px 8px; margin-top: 2px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                        <span style="font-size: 0.75rem; color: ${isWinner ? '#34d399' : '#fbbf24'}; font-weight: 800;"><i class="bi bi-trophy-fill me-1"></i> نقاط الحكام:</span>
+                        <span style="font-size: 0.88rem; color: ${isWinner ? '#34d399' : '#fbbf24'}; font-weight: 900;">${pts}/100 نقطة ${isWinner ? '🏆 (فائزة!)' : ''}</span>
+                    </div>
+                    <div style="display: flex; gap: 4px; align-items: center;">
+                        <input type="number" min="0" max="100" value="${pts}" onchange="updateGroupPoints('${g.id}', this.value)"
+                            style="width: 44px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 6px; text-align: center; font-size: 0.8rem; font-weight: 800; padding: 2px;">
+                        <button type="button" onclick="updateGroupPoints('${g.id}', 100)" style="flex: 1; background: #10b981; border: none; color: #fff; font-weight: 900; border-radius: 6px; padding: 3px 6px; font-size: 0.72rem; cursor: pointer;" title="إعلان فوز المجموعة بالـ 100 نقطة كاملة">
+                            🏆 فوز (100)
+                        </button>
+                        <button type="button" onclick="adjustGroupPoints('${g.id}', 10)" style="background: #f59e0b; border: none; color: #000; font-weight: 900; border-radius: 6px; padding: 3px 6px; font-size: 0.72rem; cursor: pointer;">+10</button>
+                        <button type="button" onclick="adjustGroupPoints('${g.id}', -5)" style="background: rgba(239,68,68,0.3); border: 1px solid #ef4444; color: #f87171; font-weight: 900; border-radius: 6px; padding: 3px 6px; font-size: 0.72rem; cursor: pointer;">-5</button>
                     </div>
                 </div>
                 ` : ''}
@@ -606,6 +647,55 @@ function renderGroupsBoard() {
     });
 
     board.innerHTML = html;
+}
+
+function updateGroupPoints(groupId, val) {
+    if (!db || !db.groups) return;
+    const group = db.groups.find(g => g.id === groupId);
+    if (!group) return;
+
+    const newPts = Math.min(100, Math.max(0, parseInt(val) || 0));
+    group.points = newPts;
+    group.score = newPts;
+
+    // تحديث نقاط جميع الأعضاء التابعين للمجموعة ومزامنتهم فوراً مع Google Sheets
+    const members = db.participants.filter(p => p.groupId === groupId);
+    members.forEach(p => {
+        p.points = newPts;
+    });
+
+    markUnsaved();
+    saveToStorage();
+    refreshAll();
+
+    if (window.DataService && window.DataService.getGasUrl()) {
+        members.forEach(p => {
+            window.DataService.sendToGAS({
+                action: 'update',
+                name: p.name,
+                group: group.name,
+                points: newPts,
+                room: p.roomId ? p.roomId.replace(/^r/, '') : '',
+                bus: p.busNumber ? ('أتوبيس ' + p.busNumber) : '',
+                seat: p.seatNumber ? String(p.seatNumber) : ''
+            });
+        });
+    }
+
+    if (newPts >= 100) {
+        showToast(`🏆 تهانينا! أعلن الحكام فوز ${group.name} بالتحدي بالحصول على 100 نقطة كاملة! 🎉`, 'success');
+    } else {
+        showToast(`🏆 تم تحديث نقاط ${group.name} إلى ${newPts}/100 نقطة بواسطة الحكام!`, 'info');
+    }
+}
+
+function adjustGroupPoints(groupId, delta) {
+    if (!db || !db.groups) return;
+    const group = db.groups.find(g => g.id === groupId);
+    if (!group) return;
+
+    const currentPts = Number(group.points || 0);
+    updateGroupPoints(groupId, currentPts + delta);
 }
 
 function openAddModalForGroup(groupId) {
@@ -667,6 +757,7 @@ function openEdit(participantId) {
     $('#editSeatInfo').text(`معرف المشترك: ${p.id}`);
     $('#editName').val(p.name);
     $('#editGroup').val(p.groupId || 'none');
+    $('#editPoints').val(Number(p.points || 0));
     $('#editBus').val(p.busNumber != null ? p.busNumber.toString() : 'none');
     $('#editSeat').val(p.seatNumber != null ? p.seatNumber : '');
     
@@ -685,6 +776,60 @@ function openEdit(participantId) {
     }
 
     setTimeout(() => $('#editName').focus(), 300);
+}
+
+function adjustEditPoints(delta) {
+    const $input = $('#editPoints');
+    let current = parseInt($input.val()) || 0;
+    current = Math.max(0, current + delta);
+    $input.val(current);
+}
+
+function adjustParticipantPoints(participantId, delta) {
+    if (!db) return;
+    const p = db.participants.find(x => x.id === participantId);
+    if (!p) return;
+    p.points = Math.max(0, Number(p.points || 0) + delta);
+    completeSave(p);
+}
+
+function awardGroupPoints(groupId, delta) {
+    if (!db || !groupId) return;
+    const groupObj = db.groups ? db.groups.find(g => g.id === groupId) : null;
+    const groupName = groupObj ? groupObj.name : groupId;
+
+    const members = db.participants.filter(p => p.groupId === groupId);
+    if (members.length === 0) {
+        showToast('المجموعة لا تحتوي على أعضاء بعد!', 'warning');
+        return;
+    }
+
+    if (!confirm(`هل تريد إضافة +${delta} نقاط لجميع أفراد ${groupName} (${members.length} مشترك)؟`)) return;
+
+    members.forEach(p => {
+        p.points = Math.max(0, Number(p.points || 0) + delta);
+    });
+
+    markUnsaved();
+    saveToStorage();
+    refreshAll();
+
+    // مزامنة سحابية مع Google Sheets
+    if (window.DataService && window.DataService.getGasUrl()) {
+        members.forEach(p => {
+            window.DataService.sendToGAS({
+                action: 'update',
+                name: p.name,
+                group: groupName,
+                points: p.points,
+                room: p.roomId ? p.roomId.replace(/^r/, '') : '',
+                bus: p.busNumber ? ('أتوبيس ' + p.busNumber) : '',
+                seat: p.seatNumber ? String(p.seatNumber) : ''
+            });
+        });
+    }
+
+    showToast(`🎉 تم إكليل وإضافة +${delta} نقاط لـ ${members.length} مشترك في ${groupName} بنجاح ✅`, 'success');
 }
 
 function closeEdit() {
@@ -728,6 +873,8 @@ function saveEdit() {
 
     const groupId = $('#editGroup').val();
     const finalGroupId = groupId === 'none' ? null : groupId;
+    const groupObj = finalGroupId ? db.groups.find(g => g.id === finalGroupId) : null;
+    const finalPoints = groupObj ? Number(groupObj.points || 0) : 0;
 
     const busVal = $('#editBus').val();
     const seatVal = $('#editSeat').val();
@@ -756,6 +903,7 @@ function saveEdit() {
 
                     p.name = name;
                     p.groupId = finalGroupId;
+                    p.points = finalPoints;
                     p.busNumber = finalBus;
                     p.seatNumber = finalSeat;
                     p.roomId = finalRoom;
@@ -789,6 +937,7 @@ function saveEdit() {
 
                     p.name = name;
                     p.groupId = finalGroupId;
+                    p.points = finalPoints;
                     p.busNumber = finalBus;
                     p.seatNumber = finalSeat;
                     p.roomId = finalRoom;
@@ -805,6 +954,7 @@ function saveEdit() {
 
     p.name = name;
     p.groupId = finalGroupId;
+    p.points = finalPoints;
     p.busNumber = finalBus;
     p.seatNumber = finalSeat;
     p.roomId = finalRoom;
@@ -818,7 +968,22 @@ function completeSave(p) {
     saveToStorage();
     closeEdit();
     refreshAll();
-    showToast(`تم حفظ تعديلات "${p.name}" بنجاح ✅`, 'success');
+
+    // مزامنة سحابية مع Google Sheets
+    if (window.DataService && window.DataService.getGasUrl()) {
+        const groupObj = db && db.groups ? db.groups.find(g => g.id === p.groupId) : null;
+        window.DataService.sendToGAS({
+            action: 'update',
+            name: p.name,
+            group: groupObj ? groupObj.name : (p.groupId || ''),
+            points: Number(p.points || 0),
+            room: p.roomId ? p.roomId.replace(/^r/, '') : '',
+            bus: p.busNumber ? ('أتوبيس ' + p.busNumber) : '',
+            seat: p.seatNumber ? String(p.seatNumber) : ''
+        });
+    }
+
+    showToast(`تم حفظ تعديلات ونقاط "${p.name}" بنجاح ✅`, 'success');
 }
 
 /* ========================================================
@@ -934,11 +1099,14 @@ function saveAddPassenger() {
         }
     }
 
+    const groupObj = finalGroupId ? db.groups.find(g => g.id === finalGroupId) : null;
+    const finalPoints = groupObj ? Number(groupObj.points || 0) : 0;
     const newId = 'p' + Date.now();
     const newParticipant = {
         id: newId,
         name: name,
         groupId: finalGroupId,
+        points: finalPoints,
         roomId: finalRoom,
         bedNumber: finalBed,
         busNumber: finalBus,
@@ -950,7 +1118,22 @@ function saveAddPassenger() {
     saveToStorage();
     closeAddModal();
     refreshAll();
-    showToast(`تم إضافة المشترك "${name}" بنجاح ✅`, 'success');
+
+    // مزامنة سحابية مع Google Sheets
+    if (window.DataService && window.DataService.getGasUrl()) {
+        const groupObj = db && db.groups ? db.groups.find(g => g.id === finalGroupId) : null;
+        window.DataService.sendToGAS({
+            action: 'add',
+            name: name,
+            group: groupObj ? groupObj.name : (finalGroupId || ''),
+            points: finalPoints,
+            room: finalRoom ? finalRoom.replace(/^r/, '') : '',
+            bus: finalBus ? ('أتوبيس ' + finalBus) : '',
+            seat: finalSeat ? String(finalSeat) : ''
+        });
+    }
+
+    showToast(`تم إضافة المشترك "${name}" ومزامنتها بنجاح ✅`, 'success');
 }
 
 /* ========================================================
@@ -1151,13 +1334,6 @@ $(document).ready(async function() {
         }
     });
 
-    $('#addName').on('keypress', function(e) {
-        if (e.which === 13) saveAddPassenger();
-    });
-    $('#editName').on('keypress', function(e) {
-        if (e.which === 13) saveEdit();
-    });
-
     window.addEventListener('beforeunload', function(e) {
         if (hasUnsavedChanges) {
             e.preventDefault();
@@ -1165,3 +1341,164 @@ $(document).ready(async function() {
         }
     });
 });
+
+/* ========================================================
+   وحدة التحكم الموحدة — إدارة البرنامج والأجندة والسحابة
+   ======================================================== */
+function switchScheduleDay(dayNum) {
+    currentScheduleDay = dayNum;
+    $('#daySubTabs .bus-tab').removeClass('active');
+    $(`#daySubTabs .bus-tab[data-day="${dayNum}"]`).addClass('active');
+    renderStatsBar();
+    renderSchedulePanel();
+}
+
+function renderSchedulePanel() {
+    if (!db || !db.schedule) return;
+    const dayKey = `day${currentScheduleDay}`;
+    const events = db.schedule[dayKey] || [];
+    const container = document.getElementById('scheduleEventsList');
+    if (!container) return;
+
+    if (events.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:30px; font-size:0.9rem;">لا توجد فعاليات مسجلة لهذا اليوم</div>';
+        return;
+    }
+
+    let html = '';
+    events.forEach((ev, idx) => {
+        html += `<div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:10px 14px; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-weight:900; color:#22d3ee; font-size:0.85rem; background:rgba(6,182,212,0.12); padding:4px 10px; border-radius:8px;">🕒 ${escapeHTML(ev.startTime)} - ${escapeHTML(ev.endTime)}</span>
+                <div>
+                    <div style="font-weight:800; color:#fff; font-size:0.92rem;">${escapeHTML(ev.title)}</div>
+                    <div style="font-size:0.75rem; color:#94a3b8;">${escapeHTML(ev.type || 'فعالية')} · ${escapeHTML(ev.location || 'المقر')}</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <button onclick="deleteEvent('${dayKey}', ${idx})" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#f87171; border-radius:8px; padding:4px 10px; font-size:0.78rem; font-weight:800; cursor:pointer;" title="حذف الفعالية">
+                    <i class="bi bi-trash3"></i> حذف
+                </button>
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+function openAddEventModal() {
+    const title = prompt('اسم الفعالية أو المحاضرة:');
+    if (!title) return;
+    const startTime = prompt('وقت البداية (مثال 9:00 ص):', '9:00 ص');
+    const endTime = prompt('وقت النهاية (مثال 10:00 ص):', '10:00 ص');
+    const type = prompt('نوع الفعالية (محاضرة / ورشة / قداس / وجبة / ترفيه):', 'محاضرة');
+
+    if (!db.schedule) db.schedule = { day1: [], day2: [], day3: [], day4: [] };
+    const dayKey = `day${currentScheduleDay}`;
+    if (!db.schedule[dayKey]) db.schedule[dayKey] = [];
+
+    db.schedule[dayKey].push({
+        id: 'act_' + Date.now(),
+        title: title.trim(),
+        startTime: startTime || '',
+        endTime: endTime || '',
+        type: type || 'فعالية'
+    });
+
+    markUnsaved();
+    saveToStorage();
+    renderSchedulePanel();
+    showToast(`تمت إضافة فعالية "${title}" لليوم ${currentScheduleDay} بنجاح ✅`, 'success');
+}
+
+function deleteEvent(dayKey, idx) {
+    if (!db || !db.schedule || !db.schedule[dayKey]) return;
+    const ev = db.schedule[dayKey][idx];
+    if (confirm(`هل أنت متأكد من حذف فعالية "${ev ? ev.title : ''}"؟`)) {
+        db.schedule[dayKey].splice(idx, 1);
+        markUnsaved();
+        saveToStorage();
+        renderSchedulePanel();
+        showToast('تم حذف الفعالية بنجاح ✅', 'info');
+    }
+}
+
+function renderCloudPanel() {
+    const input = document.getElementById('masterGasUrlInput');
+    if (input && window.DataService) {
+        input.value = window.DataService.getGasUrl();
+    }
+    renderMasterFeedbacks();
+}
+
+function saveMasterGasUrl() {
+    const input = document.getElementById('masterGasUrlInput');
+    if (!input || !window.DataService) return;
+    const url = input.value.trim();
+    window.DataService.setGasUrl(url);
+    showToast('تم حفظ وتحديث رابط Google Apps Script بنجاح ✅', 'success');
+    renderStatsBar();
+}
+
+async function pushAllToSheetFromMaster() {
+    if (!window.DataService || !window.DataService.getGasUrl()) {
+        showToast('يرجى كتابة وحفظ رابط Google Apps Script أولاً!', 'error');
+        return;
+    }
+
+    if (!confirm(`هل تريد رفع كافة بيانات المشتركين والملاحظات (${db.participants.length} مشترك) إلى Google Sheets؟`)) return;
+
+    const items = db.participants.map(p => {
+        const groupObj = db.groups ? db.groups.find(g => g.id === p.groupId) : null;
+        return {
+            name: p.name || '',
+            group: groupObj ? groupObj.name : (p.groupId || ''),
+            points: Number(p.points || 0),
+            room: p.roomId ? p.roomId.replace(/^r/, '') : '',
+            bus: p.busNumber ? ('أتوبيس ' + p.busNumber) : '',
+            seat: p.seatNumber ? String(p.seatNumber) : '',
+            feedback: p.feedback || '',
+            nextTrip: p.nextTrip || ''
+        };
+    });
+
+    const res = await window.DataService.sendToGAS({
+        action: 'bulkImport',
+        items: items
+    });
+
+    if (res && (res.status === 'success' || res.status === 'offline')) {
+        showToast('✅ تم رفع كافة بيانات الكشوفات لـ Google Sheets بنجاح!', 'success');
+    } else {
+        showToast('⚠️ تعذر الإرسال التلقائي، يرجى مراجعة إعدادات النشر ومحاولة المزامنة مجدداً.', 'warning');
+    }
+}
+
+function renderMasterFeedbacks() {
+    const container = document.getElementById('masterFeedbacksList');
+    const badge = document.getElementById('feedbacksMasterCount');
+    if (!container) return;
+
+    let feedbacks = [];
+    if (db && Array.isArray(db.participants)) {
+        feedbacks = db.participants.filter(p => p.feedback || p.nextTrip);
+    }
+
+    if (badge) badge.textContent = feedbacks.length + ' رأي وملاحظة';
+
+    if (feedbacks.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding:25px; font-size:0.85rem;">لا توجد تقييمات أو ترشيحات مسجلة بعد</div>';
+        return;
+    }
+
+    let html = '';
+    feedbacks.forEach(f => {
+        html += `<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:10px 14px; margin-bottom:8px;">
+            <div style="font-weight:800; color:#c084fc; font-size:0.88rem; margin-bottom:4px;"><i class="bi bi-person-circle me-1"></i> ${escapeHTML(f.name)}</div>
+            ${f.feedback ? `<div style="font-size:0.8rem; color:#e2e8f0; margin-bottom:3px;"><strong>الرأي:</strong> ${escapeHTML(f.feedback)}</div>` : ''}
+            ${f.nextTrip ? `<div style="font-size:0.8rem; color:#34d399;"><strong>ترشيح الرحلة الجاية:</strong> ${escapeHTML(f.nextTrip)}</div>` : ''}
+        </div>`;
+    });
+
+    container.innerHTML = html;
+}

@@ -319,26 +319,9 @@ window.onerror = function(msg, url, lineNo, columnNo, error) {
  * يُعطي الأولوية دائماً لمسودة المتصفح لأنها الأحدث.
  */
 function loadParticipantsFromBestSource() {
-    // 1. محاولة قراءة المسودة من localStorage أولاً
-    try {
-        const saved = localStorage.getItem('conference_db_draft');
-        if (saved) {
-            const draft = JSON.parse(saved);
-            if (draft && draft.db && Array.isArray(draft.db.participants)) {
-                console.log('[buses] قراءة البيانات من مسودة المتصفح (localStorage) - عدد المشتركين:', draft.db.participants.length);
-                // تحديث window.conferenceData أيضاً حتى تعمل generateBusHTML بشكل صحيح
-                // نسخ كامل قاعدة البيانات إلى window.conferenceData
-                // (وليس buses فقط) لمنع أي تضارب مع DataService لاحقاً
-                window.conferenceData = draft.db;
-                return Promise.resolve(draft.db.participants);
-            }
-        }
-    } catch (e) {
-        console.warn('[buses] تعذّر قراءة مسودة localStorage، سيتم الرجوع للملف الثابت.', e);
-    }
-
-    // 2. الرجوع إلى DataService (conference-data.json) إذا لم توجد مسودة
-    return DataService.loadConference().then(() => DataService.getParticipants());
+    return DataService.loadConference().then(data => {
+        return (data && data.participants) ? data.participants : DataService.getParticipants();
+    });
 }
 
 $(document).ready(function() {

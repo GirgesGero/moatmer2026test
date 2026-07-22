@@ -52,10 +52,33 @@ async function loadPartials() {
         }
     }));
 
-    // تظليل التبويب النشط حسب اسم الصفحة الحالية
+    _fixPartialLinks();
     _highlightActiveTab();
     _setupBackButton();
     _setupDrawerNavigation();
+}
+
+function _fixPartialLinks() {
+    const isPagesDir = location.pathname.includes('/pages/');
+    const pageNavLinks = document.querySelectorAll('#app-navbar-slot a, #app-bottomnav-slot a');
+    pageNavLinks.forEach(link => {
+        let href = link.getAttribute('href');
+        if (!href || href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript')) return;
+        
+        if (isPagesDir) {
+            // الصفحات بداخل مجلد pages/
+            if (href.startsWith('pages/')) {
+                link.setAttribute('href', href.replace('pages/', ''));
+            }
+        } else {
+            // الصفحات بداخل المجلد الرئيسي root
+            if (!href.startsWith('../') && !href.startsWith('pages/')) {
+                link.setAttribute('href', 'pages/' + href);
+            } else if (href.startsWith('../')) {
+                link.setAttribute('href', href.replace('../', ''));
+            }
+        }
+    });
 }
 
 function _setupDrawerNavigation() {

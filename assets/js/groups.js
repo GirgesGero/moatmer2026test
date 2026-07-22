@@ -7,47 +7,11 @@
 
     async function init() {
         try {
-            // تحميل البيانات من أفضل مصدر (يأخذ بالاعتبار draft الـ localStorage الأحدث)
+            // تحميل البيانات من أفضل مصدر (يستدعي Google Sheets مباشرة)
             const data = await DataService.loadConference();
             const groups = data.groups || [];
-            
-            // محاولة جلب النقاط الحية من Google Apps Script سحابياً
-            let isLive = false;
-            const googleScriptUrl = localStorage.getItem('group_eval_google_script_url') || (data.meta && data.meta.googleScriptUrl);
-            if (googleScriptUrl) {
-                try {
-                    const response = await fetch(`${googleScriptUrl}?action=getScores&t=${Date.now()}`);
-                    if (response.ok) {
-                        const liveScores = await response.json();
-                        if (Array.isArray(liveScores)) {
-                            liveScores.forEach(ls => {
-                                const group = groups.find(g => g.id === ls.id);
-                                if (group) {
-                                    group.score = ls.score;
-                                }
-                            });
-                            isLive = true;
-                            console.log('DataService: تم تحديث درجات المجموعات بنجاح من خادم جوجل!');
-                        }
-                    }
-                } catch (err) {
-                    console.warn('تعذر جلب الدرجات الحية من السحاب، سيتم استخدام درجات الكاش المحلي:', err);
-                }
-            }
-
-            // قراءة المشاركين مع أخذ مسودة المتصفح بعين الاعتبار إن وجدت
-            let participants = data.participants || [];
-            try {
-                const saved = localStorage.getItem('conference_db_draft');
-                if (saved) {
-                    const draft = JSON.parse(saved);
-                    if (draft && draft.db && Array.isArray(draft.db.participants)) {
-                        participants = draft.db.participants;
-                    }
-                }
-            } catch (err) {
-                console.warn('تعذر قراءة مسودة المشتركين من localStorage لصفحة المجموعات:', err);
-            }
+            const participants = data.participants || [];
+            const isLive = Boolean(DataService.getGasUrl());
 
             const colors = ['#06b6d4', '#10b981', '#f59e0b', '#ec4899'];
             const grid = document.getElementById('groups-grid');
@@ -114,14 +78,22 @@
                     `;
                 }).join('') || `<div class="group-empty-msg"><i class="bi bi-people-fill"></i> لسه محدش اتضاف للمجموعة دي</div>`;
 
+                const groupPts = Number(g.points || g.score || 0);
+                const isWinner = groupPts >= 100;
+
                 return `
                 <div class="group-card" style="--group-color: ${color};">
-                    <div class="group-card-header">
-                        <div class="group-card-badge">${i + 1}</div>
-                        <div>
-                            <div class="group-card-title">${escapeHTML(getGroupDisplayName(g.name))}</div>
-                            <div class="group-card-count">${members.length} عضو</div>
+                    <div class="group-card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="group-card-badge">${i + 1}</div>
+                            <div>
+                                <div class="group-card-title">${escapeHTML(getGroupDisplayName(g.name))}</div>
+                                <div class="group-card-count">${members.length} عضو</div>
+                            </div>
                         </div>
+                        <span style="font-size: 0.78rem; background: ${isWinner ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.18)'}; border: 1px solid ${isWinner ? '#10b981' : 'rgba(245, 158, 11, 0.4)'}; color: ${isWinner ? '#34d399' : '#fbbf24'}; padding: 4px 10px; border-radius: 12px; font-weight: 800;">
+                            ${isWinner ? '🏆 فائزة (100/100)' : `⭐ ${groupPts}/100 نقطة`}
+                        </span>
                     </div>
                     <div class="group-members-list">
                         ${membersHtml}
