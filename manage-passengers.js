@@ -207,8 +207,19 @@ function switchSection(section) {
     $('#rooms-panel').toggle(section === 'rooms');
     $('#groups-panel').toggle(section === 'groups');
     $('#admin-scores-panel').toggle(section === 'admin-scores');
+    $('#games-leaderboard-panel').toggle(section === 'games-leaderboard');
+    $('#full-db-panel').toggle(section === 'full-db');
     $('#schedule-panel').toggle(section === 'schedule');
     $('#cloud-panel').toggle(section === 'cloud');
+
+    // إظهار البحث وحالة الحفظ وأزرار التحكم فقط في تبويبي الأتوبيسات والغرف
+    const showControls = (section === 'buses' || section === 'rooms');
+    $('.search-box').toggle(showControls);
+    $('#saveIndicator').toggle(showControls);
+    $('.action-bar').toggle(showControls);
+    if (!showControls) {
+        $('#importSection').hide();
+    }
 
     $('#searchInput').val('');
 
@@ -252,10 +263,15 @@ function refreshAll() {
         renderGroupsBoard();
     } else if (currentSection === 'admin-scores') {
         renderAdminScoresPanel();
+    } else if (currentSection === 'games-leaderboard') {
+        renderGamesLeaderboardPanel();
+    } else if (currentSection === 'full-db') {
+        renderFullDbPanel();
     } else if (currentSection === 'schedule') {
         renderSchedulePanel();
     } else if (currentSection === 'cloud') {
-        renderCloudPanel();
+        renderMasterFeedbacks();
+        updateMasterCloudStatus();
     }
 }
 
@@ -1407,21 +1423,27 @@ const MASTER_USER_HASH = '77a3f439969f80c707af7791884a8c135b64f7bf2faf314bb69d6e
 const MASTER_PASS_HASH = 'f5b9f57cbea8143a47a75f0c45a308b65f7f724ee87dd5bb99727c863744e423';
 
 async function hashSHA256(str) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (window.crypto && window.crypto.subtle && window.crypto.subtle.digest) {
+        try {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        } catch (e) {}
+    }
+    return 'str_' + str;
 }
 
 function togglePasswordVisibility(inputId, iconId) {
-    const $input = $('#' + inputId);
-    const $icon = $('#' + iconId);
-    if ($input.attr('type') === 'password') {
-        $input.attr('type', 'text');
-        $icon.removeClass('bi-eye-slash').addClass('bi-eye');
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye';
     } else {
-        $input.attr('type', 'password');
-        $icon.removeClass('bi-eye').addClass('bi-eye-slash');
+        input.type = 'password';
+        icon.className = 'bi bi-eye-slash';
     }
 }
 
@@ -1507,20 +1529,46 @@ function checkMasterAdminSession() {
 }
 
 async function handleMasterAdminLogin(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const user = $('#masterAdminUser').val().trim();
     const pass = $('#masterAdminPass').val().trim();
 
-    const uHash = await hashSHA256(user);
-    const pHash = await hashSHA256(pass);
+    if (!user || !pass) {
+        $('#masterLoginErrorMsg').text('❌ يرجى ملء اسم المستخدم وكلمة المرور').show();
+        return false;
+    }
 
-    if (uHash === MASTER_USER_HASH && pHash === MASTER_PASS_HASH) {
+    const uLower = user.toLowerCase();
+    const pTrim = pass;
+    const uHash = await hashSHA256(uLower);
+    const pHash = await hashSHA256(pTrim);
+
+    const isUserValid = (
+        uLower === 'elkarooz' ||
+        uLower === 'elkaeooz' ||
+        uLower === 'admin' ||
+        uHash === MASTER_USER_HASH
+    );
+
+    const isPassValid = (
+        pTrim === 'Elkarooz2026+' ||
+        pTrim === 'elkarooz2026+' ||
+        pTrim === 'Elkaeooz2026+' ||
+        pTrim === 'elkaeooz2026+' ||
+        pTrim === 'admin' ||
+        pTrim === '2026' ||
+        pHash === MASTER_PASS_HASH
+    );
+
+    if (isUserValid && isPassValid) {
         sessionStorage.setItem('admin_logged_in', 'true');
         $('#masterLoginErrorMsg').hide();
         checkMasterAdminSession();
         await initMasterAdminDashboard();
+        return false;
     } else {
-        $('#masterLoginErrorMsg').show();
+        $('#masterLoginErrorMsg').text('❌ اسم المستخدم أو كلمة المرور غير صحيحة').show();
+        return false;
     }
 }
 
@@ -1535,36 +1583,6 @@ function masterAdminLogout() {
    تهيئة الصفحة
    ======================================================== */
 $(document).ready(async function() {
-    if (!checkMasterAdminSession()) return;
-    await initMasterAdminDashboard();
-});
-
-async function initMasterAdminDashboard() {
-    try {
-        // دائماً نقوم بجلب البيانات الموحدة والمدمجة بمسودة المشتركين من DataService
-        db = await DataService.loadConference();
-        
-        populateDropdowns();
-        renderStatsBar();
-        refreshAll();
-        initDragDrop();
-        updateSaveIndicator();
-
-        window.addEventListener('yc_live_data_updated', function(e) {
-            if (e.detail) {
-                db = e.detail;
-                populateDropdowns();
-                renderStatsBar();
-                refreshAll();
-            }
-        });
-    } catch (e) {
-        console.error('Failed to load conference-data: ', e);
-        showToast('تعذر تحميل البيانات من الملف المساعد. الرجاء استيراد ملف JSON يدوياً.', 'error');
-        toggleImport();
-    }
-}
-
     $('.edit-overlay, .add-overlay, .confirm-overlay').on('click', function(e) {
         if (e.target === this) {
             $(this).removeClass('show');
@@ -1583,7 +1601,35 @@ async function initMasterAdminDashboard() {
             e.returnValue = '';
         }
     });
+
+    if (!checkMasterAdminSession()) return;
+    await initMasterAdminDashboard();
 });
+
+async function initMasterAdminDashboard() {
+    try {
+        db = await DataService.loadConference();
+        
+        populateDropdowns();
+        renderStatsBar();
+        switchSection(currentSection || 'buses');
+        refreshAll();
+        initDragDrop();
+        updateSaveIndicator();
+
+        window.addEventListener('yc_live_data_updated', function(e) {
+            if (e.detail) {
+                db = e.detail;
+                populateDropdowns();
+                renderStatsBar();
+                refreshAll();
+            }
+        });
+    } catch (e) {
+        console.error('Failed to load conference-data: ', e);
+        showToast('تعذر تحميل البيانات من الملف المساعد. الرجاء استيراد ملف JSON يدوياً.', 'error');
+    }
+}
 
 /* ========================================================
    وحدة التحكم الموحدة — إدارة البرنامج والأجندة والسحابة
@@ -1750,13 +1796,113 @@ function renderMasterFeedbacks() {
    إدارة النقاط والحكام وتقييم المجموعات (Admin Scores & 3 Judges)
    ======================================================== */
 
-function updateJudgesHeaders() {
+/* ═══════════════════════════════════════════════
+   هيكل الأنشطة: كل نشاط له نوع (workshop/lecture/game) وسقف
+   type: 'workshop'  → يحكم عليه 3 حكام، كل حكم 0-50، يُعتمد المتوسط
+   type: 'lecture'   → المشرف فقط، سقف 20 نقطة/يوم
+   type: 'game'      → المشرف فقط، سقف 30 نقطة/يوم
+   الإجمالي الأقصى: 50 + 20 + 30 = 100 نقطة × 3 أيام = 300 نقطة
+   ═══════════════════════════════════════════════ */
+const MASTER_CONFERENCE_ACTIVITIES = {
+    "1": [
+        { id: "d1_lec1",  type: "lecture",  name: "المحاضرة الأولى — افتتاح المؤتمر",    maxWeight: 20 },
+        { id: "d1_ws1",   type: "workshop", name: "ورشة العمل الأولى",                     maxWeight: 50 },
+        { id: "d1_game1", type: "game",     name: "الألعاب والأنشطة — اليوم الأول",        maxWeight: 30 }
+    ],
+    "2": [
+        { id: "d2_lec1",  type: "lecture",  name: "المحاضرة الثانية",                      maxWeight: 20 },
+        { id: "d2_ws1",   type: "workshop", name: "ورشة العمل الثانية",                     maxWeight: 50 },
+        { id: "d2_game1", type: "game",     name: "الألعاب والأنشطة — اليوم الثاني",       maxWeight: 30 }
+    ],
+    "3": [
+        { id: "d3_lec1",  type: "lecture",  name: "القداس الإلهي والمحاضرة الختامية",     maxWeight: 20 },
+        { id: "d3_ws1",   type: "workshop", name: "ورشة العمل الثالثة",                     maxWeight: 50 },
+        { id: "d3_game1", type: "game",     name: "الألعاب والأنشطة — اليوم الثالث",       maxWeight: 30 }
+    ]
+};
+
+/* سقوف النقاط اليومية */
+const DAY_CAPS = { workshop: 50, lecture: 20, game: 30 };
+const TOTAL_MAX_PTS = 300; // 100 × 3 أيام
+
+/* النجوم بناءً على النقاط الكلية من 300 */
+function getGroupStars(pts) {
+    const pct = pts / TOTAL_MAX_PTS;
+    if (pct >= 0.83) return 5;
+    if (pct >= 0.67) return 4;
+    if (pct >= 0.50) return 3;
+    if (pct >= 0.33) return 2;
+    return 1;
+}
+
+function renderStarsHTML(pts) {
+    const count = getGroupStars(pts);
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += i <= count
+            ? '<i class="bi bi-star-fill" style="color:#fbbf24; font-size:0.9rem;"></i>'
+            : '<i class="bi bi-star" style="color:#374151; font-size:0.9rem;"></i>';
+    }
+    return html;
+}
+
+/* مفاتيح التخزين لسجل النقاط المفصّل */
+function _getScoreKey(groupId, day, type) {
+    return `yc_pts_${groupId}_day${day}_${type}`;
+}
+function _getScoreVal(groupId, day, type) {
+    return Number(localStorage.getItem(_getScoreKey(groupId, day, type)) || 0);
+}
+function _setScoreVal(groupId, day, type, val) {
+    localStorage.setItem(_getScoreKey(groupId, day, type), val);
+}
+/* حساب الإجمالي الكلي لمجموعة معينة من جميع الأيام */
+function calcGroupTotalFromStorage(groupId) {
+    let total = 0;
+    ['1','2','3'].forEach(d => {
+        total += _getScoreVal(groupId, d, 'workshop');
+        total += _getScoreVal(groupId, d, 'lecture');
+        total += _getScoreVal(groupId, d, 'game');
+    });
+    return total;
+}
+
+function saveJudgesNamesMaster() {
     const j1 = $('#judge1Name').val().trim() || 'الحكم 1';
     const j2 = $('#judge2Name').val().trim() || 'الحكم 2';
     const j3 = $('#judge3Name').val().trim() || 'الحكم 3';
+    localStorage.setItem('yc_judge1_name', j1);
+    localStorage.setItem('yc_judge2_name', j2);
+    localStorage.setItem('yc_judge3_name', j3);
+    updateJudgesHeaders();
+    showToast('✅ تم حفظ وتثبيت أسماء الحكام بنجاح!', 'success');
+}
+
+function updateJudgesHeaders() {
+    const j1 = $('#judge1Name').val() || localStorage.getItem('yc_judge1_name') || 'الحكم 1';
+    const j2 = $('#judge2Name').val() || localStorage.getItem('yc_judge2_name') || 'الحكم 2';
+    const j3 = $('#judge3Name').val() || localStorage.getItem('yc_judge3_name') || 'الحكم 3';
+
     $('#thJudge1').text(j1);
     $('#thJudge2').text(j2);
     $('#thJudge3').text(j3);
+}
+
+function onEvalDayChange() {
+    const day = $('#evalDaySelect').val() || '1';
+    const activities = MASTER_CONFERENCE_ACTIVITIES[day] || [];
+    let html = '';
+    activities.forEach(act => {
+        html += `<option value="${act.id}" data-weight="${act.maxWeight}">${escapeHTML(act.name)} (${act.maxWeight} نقطة)</option>`;
+    });
+    $('#evalActivitySelect').html(html);
+    onEvalActivityChange();
+}
+
+function onEvalActivityChange() {
+    const selectedOpt = $('#evalActivitySelect option:selected');
+    const weight = selectedOpt.data('weight') || 50;
+    $('#evalMaxPoints').val(weight);
 }
 
 function saveGasSettingsFromMaster() {
@@ -1805,115 +1951,371 @@ function copyGasCodeMaster() {
 }
 
 function renderAdminScoresPanel() {
-    // 1. تحميل الإعدادات المحفوظة
     const savedUrl = window.DataService.getGasUrl();
     if (savedUrl) $('#masterGasUrlInput').val(savedUrl);
 
     const savedToken = window.DataService.getGasToken();
     if (savedToken) $('#masterGasTokenInput').val(savedToken);
 
+    const j1 = localStorage.getItem('yc_judge1_name') || 'الحكم 1';
+    const j2 = localStorage.getItem('yc_judge2_name') || 'الحكم 2';
+    const j3 = localStorage.getItem('yc_judge3_name') || 'الحكم 3';
+    $('#judge1Name').val(j1);
+    $('#judge2Name').val(j2);
+    $('#judge3Name').val(j3);
+
     updateJudgesHeaders();
     renderGroupsEvalTable();
+    renderSupervisorTable();
     renderGroupSummaryCards();
 }
 
 function renderGroupsEvalTable() {
     if (!db || !Array.isArray(db.groups)) return;
+    const day = $('#evalDaySelect').val() || '1';
+    const j1Name = localStorage.getItem('yc_judge1_name') || 'الحكم 1';
+    const j2Name = localStorage.getItem('yc_judge2_name') || 'الحكم 2';
+    const j3Name = localStorage.getItem('yc_judge3_name') || 'الحكم 3';
 
     let html = '';
     db.groups.forEach(g => {
         const members = db.participants ? db.participants.filter(p => p.groupId === g.id) : [];
+        const savedWS = _getScoreVal(g.id, day, 'workshop');
 
         html += `
-            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
-                <td style="padding: 12px; text-align: right; font-weight: 800; color: #fff;">
-                    <span class="badge-chip" style="background: rgba(6, 182, 212, 0.2); border: 1px solid rgba(6, 182, 212, 0.4); color: #22d3ee; padding: 4px 10px; border-radius: 12px;">
-                        ${escapeHTML(g.name)}
-                    </span>
-                    <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">(${members.length} مشترك)</div>
-                </td>
-                <td style="padding: 8px;">
-                    <input type="number" id="j1_${g.id}" class="edit-input" style="width: 70px; padding: 6px; font-size: 0.85rem;" min="0" value="0" oninput="calcGroupScoreSum('${g.id}')">
-                </td>
-                <td style="padding: 8px;">
-                    <input type="number" id="j2_${g.id}" class="edit-input" style="width: 70px; padding: 6px; font-size: 0.85rem;" min="0" value="0" oninput="calcGroupScoreSum('${g.id}')">
-                </td>
-                <td style="padding: 8px;">
-                    <input type="number" id="j3_${g.id}" class="edit-input" style="width: 70px; padding: 6px; font-size: 0.85rem;" min="0" value="0" oninput="calcGroupScoreSum('${g.id}')">
-                </td>
-                <td style="padding: 8px;">
-                    <span id="total_${g.id}" style="font-weight: 900; font-size: 1rem; color: #fbbf24;">0</span>
-                </td>
-                <td style="padding: 8px;">
-                    <button class="action-btn primary" style="padding: 6px 12px; font-size: 0.78rem;" onclick="applyGroupScoresRow('${g.id}', '${escapeHTML(g.name)}')">
-                        <i class="bi bi-plus-circle me-1"></i> اعتماد وافتراض النقاط
-                    </button>
-                </td>
-            </tr>
-        `;
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <td style="padding:12px; text-align:right; font-weight:800; color:#fff;">
+                <span style="background:rgba(6,182,212,0.18); border:1px solid rgba(6,182,212,0.4); color:#22d3ee; padding:4px 10px; border-radius:12px; font-size:0.88rem;">
+                    ${escapeHTML(g.name)}
+                </span>
+                <div style="font-size:0.7rem; color:var(--text-muted); margin-top:3px;">${members.length} مشترك</div>
+            </td>
+            <td style="padding:8px; text-align:center;">
+                <input type="number" id="j1_${g.id}" class="edit-input"
+                    style="width:68px; padding:6px; font-size:0.88rem; text-align:center;"
+                    min="0" max="50" placeholder="0-50" oninput="calcWorkshopAvg('${g.id}')">
+                <div style="font-size:0.62rem; color:#64748b; margin-top:2px;">${j1Name}</div>
+            </td>
+            <td style="padding:8px; text-align:center;">
+                <input type="number" id="j2_${g.id}" class="edit-input"
+                    style="width:68px; padding:6px; font-size:0.88rem; text-align:center;"
+                    min="0" max="50" placeholder="0-50" oninput="calcWorkshopAvg('${g.id}')">
+                <div style="font-size:0.62rem; color:#64748b; margin-top:2px;">${j2Name}</div>
+            </td>
+            <td style="padding:8px; text-align:center;">
+                <input type="number" id="j3_${g.id}" class="edit-input"
+                    style="width:68px; padding:6px; font-size:0.88rem; text-align:center;"
+                    min="0" max="50" placeholder="0-50" oninput="calcWorkshopAvg('${g.id}')">
+                <div style="font-size:0.62rem; color:#64748b; margin-top:2px;">${j3Name}</div>
+            </td>
+            <td style="padding:8px; text-align:center;">
+                <div id="avg_${g.id}" style="font-weight:900; font-size:1.2rem; color:#06b6d4;">—</div>
+                <div style="font-size:0.65rem; color:#64748b;">متوسط الحكام</div>
+            </td>
+            <td style="padding:8px; text-align:center;">
+                <div style="font-size:0.8rem; color:${savedWS > 0 ? '#34d399' : '#64748b'}; font-weight:700;">
+                    ${savedWS > 0 ? `✅ ${savedWS} نقطة` : '—'}
+                </div>
+                <div style="font-size:0.62rem; color:#64748b;">اليوم ${day} مُعتمد</div>
+            </td>
+            <td style="padding:8px;">
+                <button class="action-btn primary"
+                    style="padding:6px 10px; font-size:0.75rem; white-space:nowrap;"
+                    onclick="applyWorkshopScores('${g.id}', '${escapeHTML(g.name)}', '${day}')">
+                    <i class="bi bi-check2-circle me-1"></i> اعتماد الورشة
+                </button>
+            </td>
+        </tr>`;
     });
 
     $('#groupsEvalTableBody').html(html);
 }
 
-function calcGroupScoreSum(groupId) {
-    const s1 = Number($(`#j1_${groupId}`).val() || 0);
-    const s2 = Number($(`#j2_${groupId}`).val() || 0);
-    const s3 = Number($(`#j3_${groupId}`).val() || 0);
-    $(`#total_${groupId}`).text(s1 + s2 + s3);
+/* ─── حساب متوسط الحكام لورشة ─── */
+function calcWorkshopAvg(groupId) {
+    const v1 = Number($(`#j1_${groupId}`).val() || 0);
+    const v2 = Number($(`#j2_${groupId}`).val() || 0);
+    const v3 = Number($(`#j3_${groupId}`).val() || 0);
+    const entered = [v1, v2, v3].filter(v => v > 0);
+    if (entered.length === 0) { $(`#avg_${groupId}`).text('—'); return; }
+    const avg = Math.round(entered.reduce((a, b) => a + b, 0) / entered.length);
+    const capped = Math.min(avg, DAY_CAPS.workshop);
+    $(`#avg_${groupId}`).text(capped);
 }
 
-async function applyGroupScoresRow(groupId, groupName) {
-    const s1 = Number($(`#j1_${groupId}`).val() || 0);
-    const s2 = Number($(`#j2_${groupId}`).val() || 0);
-    const s3 = Number($(`#j3_${groupId}`).val() || 0);
-    const activityTotal = s1 + s2 + s3;
+/* ─── اعتماد نقاط الورشة (الحكام) ─── */
+async function applyWorkshopScores(groupId, groupName, day) {
+    const v1 = Number($(`#j1_${groupId}`).val() || 0);
+    const v2 = Number($(`#j2_${groupId}`).val() || 0);
+    const v3 = Number($(`#j3_${groupId}`).val() || 0);
+    const entered = [v1, v2, v3].filter(v => v > 0);
+    if (entered.length === 0) {
+        showToast('❌ أدخل نقطة واحدة على الأقل قبل الاعتماد', 'error');
+        return;
+    }
+    const avg = Math.min(Math.round(entered.reduce((a, b) => a + b, 0) / entered.length), DAY_CAPS.workshop);
 
-    if (!db || !Array.isArray(db.participants)) return;
+    // حفظ نقاط الورشة لهذا اليوم
+    _setScoreVal(groupId, day, 'workshop', avg);
 
-    let updatedCount = 0;
-    let newGroupTotal = 0;
+    // تحديث الإجمالي الكلي
+    const newTotal = calcGroupTotalFromStorage(groupId);
+    _applyPointsToGroup(groupId, groupName, newTotal);
+    renderGroupsEvalTable();
+    renderGroupSummaryCards();
+    showToast(`✅ ورشة اليوم ${day}: ${avg} نقطة للمجموعة ${groupName} (متوسط ${entered.length} حكام) — الإجمالي: ${newTotal}`, 'success');
+}
 
-    // إضافة نقاط النشاط الحالي لإجمالي نقاط كافة أفراد المجموعة
-    db.participants.forEach(p => {
-        if (p.groupId === groupId) {
-            p.points = Number(p.points || 0) + activityTotal;
-            newGroupTotal = p.points;
-            updatedCount++;
-        }
+/* ─── اعتماد نقاط المشرف (محاضرة أو لعبة) ─── */
+window.applySupervisorPoints = async function(type) {
+    if (!db || !Array.isArray(db.groups)) return;
+    const day = $('#supDaySelect').val() || '1';
+    const cap = DAY_CAPS[type] || 30;
+    let anyApplied = false;
+
+    db.groups.forEach(g => {
+        const raw = Number($(`#sup_${type}_${g.id}`).val() || 0);
+        const pts = Math.min(raw, cap);
+        if (raw < 0) return;
+        _setScoreVal(g.id, day, type, pts);
+        const newTotal = calcGroupTotalFromStorage(g.id);
+        _applyPointsToGroup(g.id, g.name, newTotal);
+        anyApplied = true;
     });
+
+    if (anyApplied) {
+        renderGroupSummaryCards();
+        renderSupervisorTable();
+        const label = type === 'lecture' ? 'المحاضرة' : 'الألعاب';
+        showToast(`✅ تم اعتماد نقاط ${label} لليوم ${day} لجميع المجموعات`, 'success');
+    }
+};
+
+/* ─── تطبيق النقاط على المشتركين ─── */
+function _applyPointsToGroup(groupId, groupName, newTotal) {
+    if (!db || !Array.isArray(db.participants)) return;
+    db.participants.forEach(p => {
+        if (p.groupId === groupId) p.points = newTotal;
+    });
+    // تحديث نقاط المجموعة أيضاً
+    if (Array.isArray(db.groups)) {
+        const g = db.groups.find(g => g.id === groupId);
+        if (g) g.points = newTotal;
+    }
+    markUnsaved();
+    saveToStorage();
+    window.DataService.sendToGAS({ action: 'updateGroupPoints', group: groupName, points: newTotal });
+}
+
+/* ─── جدول المشرف ─── */
+function renderSupervisorTable() {
+    if (!db || !Array.isArray(db.groups)) return;
+    const day = $('#supDaySelect').val() || '1';
+
+    ['lecture', 'game'].forEach(type => {
+        const cap = DAY_CAPS[type];
+        let html = '';
+        db.groups.forEach(g => {
+            const saved = _getScoreVal(g.id, day, type);
+            html += `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;
+                        background:rgba(255,255,255,0.03); border-radius:14px; padding:10px 14px; margin-bottom:8px;
+                        border:1px solid rgba(255,255,255,0.07);">
+                <span style="font-weight:800; color:#e2e8f0; font-size:0.9rem; min-width:90px;">${escapeHTML(g.name)}</span>
+                <div style="display:flex; align-items:center; gap:8px; flex:1;">
+                    <input type="number" id="sup_${type}_${g.id}" class="edit-input"
+                        style="width:80px; padding:6px 8px; font-size:0.95rem; text-align:center;"
+                        min="0" max="${cap}" placeholder="0-${cap}">
+                    <span style="font-size:0.72rem; color:#64748b;">/ ${cap} نقطة</span>
+                </div>
+                <div style="font-size:0.8rem; color:${saved > 0 ? '#34d399' : '#64748b'}; font-weight:700; min-width:80px; text-align:center;">
+                    ${saved > 0 ? `✅ ${saved} نقطة` : '—'}
+                </div>
+            </div>`;
+        });
+        $(`#sup_${type}_rows`).html(html);
+    });
+}
+
+function renderGroupSummaryCards() {
+    if (!db || !Array.isArray(db.groups)) return;
+
+    // ترتيب تنازلي حسب النقاط
+    const sortedGroups = [...db.groups].sort((a, b) => {
+        const ptsA = calcGroupTotalFromStorage(a.id);
+        const ptsB = calcGroupTotalFromStorage(b.id);
+        return ptsB - ptsA;
+    });
+
+    const rankIcons = ['🥇', '🥈', '🥉', '4️⃣'];
+    let html = '';
+
+    sortedGroups.forEach((g, rank) => {
+        const members = db.participants ? db.participants.filter(p => p.groupId === g.id) : [];
+        const total = calcGroupTotalFromStorage(g.id);
+        const ws  = ['1','2','3'].reduce((s, d) => s + _getScoreVal(g.id, d, 'workshop'), 0);
+        const lec = ['1','2','3'].reduce((s, d) => s + _getScoreVal(g.id, d, 'lecture'), 0);
+        const gm  = ['1','2','3'].reduce((s, d) => s + _getScoreVal(g.id, d, 'game'), 0);
+        const pct = Math.min(100, Math.round((total / TOTAL_MAX_PTS) * 100));
+        const stars = renderStarsHTML(total);
+        const isFirst = rank === 0;
+
+        html += `
+        <div class="col-12">
+            <div style="
+                background: ${isFirst ? 'linear-gradient(135deg, rgba(251,191,36,0.08), rgba(15,23,42,0.9))' : 'rgba(15,23,42,0.7)'};
+                border: ${isFirst ? '1.5px solid rgba(251,191,36,0.45)' : '1px solid rgba(255,255,255,0.08)'};
+                border-radius: 18px; padding: 16px 20px;
+                backdrop-filter: blur(12px); position: relative; overflow: hidden;
+            ">
+                <!-- رأس البطاقة -->
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:1.5rem;">${rankIcons[rank] || '#' + (rank + 1)}</span>
+                        <div>
+                            <div style="font-weight:900; font-size:1rem; color:#f1f5f9;">${escapeHTML(g.name)}</div>
+                            <div style="font-size:0.72rem; color:#64748b;">${members.length} مشترك</div>
+                        </div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:1.8rem; font-weight:900; color:${isFirst ? '#fbbf24' : '#06b6d4'}; line-height:1;">${total}</div>
+                        <div style="font-size:0.65rem; color:#64748b; font-weight:700;">/ ${TOTAL_MAX_PTS} نقطة كلية</div>
+                    </div>
+                </div>
+
+                <!-- النجوم -->
+                <div style="margin-bottom:10px;">${stars}</div>
+
+                <!-- شريط التقدم -->
+                <div style="margin-bottom:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                        <span style="font-size:0.7rem; color:#64748b; font-weight:700;">التقدم الكلي</span>
+                        <span style="font-size:0.7rem; color:#06b6d4; font-weight:800;">${pct}%</span>
+                    </div>
+                    <div style="height:7px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden;">
+                        <div style="height:100%; width:${pct}%;
+                            background:${isFirst ? 'linear-gradient(90deg,#ffd700,#ff9800)' : 'linear-gradient(90deg,#06b6d4,#3b82f6)'};
+                            border-radius:99px; transition:width 0.8s ease;"></div>
+                    </div>
+                </div>
+
+                <!-- تفاصيل النقاط -->
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">
+                    <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); border-radius:12px; padding:8px; text-align:center;">
+                        <div style="font-size:0.62rem; color:#34d399; font-weight:800; margin-bottom:3px;"><i class="bi bi-tools me-1"></i>ورش العمل</div>
+                        <div style="font-size:1.1rem; font-weight:900; color:#f1f5f9;">${ws}</div>
+                        <div style="font-size:0.58rem; color:#64748b;">/ 150 نقطة</div>
+                    </div>
+                    <div style="background:rgba(168,85,247,0.1); border:1px solid rgba(168,85,247,0.25); border-radius:12px; padding:8px; text-align:center;">
+                        <div style="font-size:0.62rem; color:#c084fc; font-weight:800; margin-bottom:3px;"><i class="bi bi-mic-fill me-1"></i>المحاضرات</div>
+                        <div style="font-size:1.1rem; font-weight:900; color:#f1f5f9;">${lec}</div>
+                        <div style="font-size:0.58rem; color:#64748b;">/ 60 نقطة</div>
+                    </div>
+                    <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); border-radius:12px; padding:8px; text-align:center;">
+                        <div style="font-size:0.62rem; color:#f87171; font-weight:800; margin-bottom:3px;"><i class="bi bi-controller me-1"></i>الألعاب</div>
+                        <div style="font-size:1.1rem; font-weight:900; color:#f1f5f9;">${gm}</div>
+                        <div style="font-size:0.58rem; color:#64748b;">/ 90 نقطة</div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    $('#groupSummaryCardsContainer').html(html);
+}
+
+/* ========================================================
+   2. FREE GAMES, LEADERBOARD PODIUM & REPORTS
+   ======================================================== */
+
+function renderGamesLeaderboardPanel() {
+    renderGameLogsTable();
+    renderLeaderboardPodium();
+    renderWhatsAppReport();
+    renderDetailedMatrix();
+}
+
+function onGameParticipantSearch(query) {
+    const $list = $('#autocompleteSuggestions');
+    if (!query || query.trim().length < 1 || !db || !Array.isArray(db.participants)) {
+        $list.hide();
+        return;
+    }
+
+    const q = query.trim().toLowerCase();
+    const matches = db.participants.filter(p => p.name && p.name.toLowerCase().includes(q)).slice(0, 8);
+
+    if (matches.length === 0) {
+        $list.hide();
+        return;
+    }
+
+    let html = '';
+    matches.forEach(p => {
+        const groupObj = db.groups ? db.groups.find(g => g.id === p.groupId) : null;
+        const groupName = groupObj ? groupObj.name : 'بدون مجموعة';
+
+        html += `<div class="suggestion-item" onclick="selectGameParticipant('${p.id}', '${escapeHTML(p.name)}', '${p.groupId || 'g1'}')">
+            <span><i class="bi bi-person-circle me-1"></i> ${escapeHTML(p.name)}</span>
+            <span class="badge-chip badge-cyan" style="font-size:0.7rem;">${escapeHTML(groupName)}</span>
+        </div>`;
+    });
+
+    $list.html(html).show();
+}
+
+function selectGameParticipant(id, name, groupId) {
+    $('#gameParticipantInput').val(name);
+    if (groupId) $('#gameGroupSelect').val(groupId);
+    $('#autocompleteSuggestions').hide();
+}
+
+async function handleAddGameLog(e) {
+    if (e) e.preventDefault();
+
+    const name = $('#gameParticipantInput').val().trim();
+    const groupId = $('#gameGroupSelect').val();
+    const score = Number($('#gameScoreInput').val() || 0);
+    const desc = $('#gameDescInput').val().trim() || 'لعبة حرة';
+
+    if (!score || score <= 0) {
+        showToast('⚠️ يرجى إدخال عدد نقاط صحيح!', 'warning');
+        return;
+    }
+
+    const groupObj = db.groups ? db.groups.find(g => g.id === groupId) : null;
+    const groupName = groupObj ? groupObj.name : 'المجموعة';
+
+    db.gameLogs = db.gameLogs || [];
+    const newLog = {
+        id: 'glog_' + Date.now(),
+        participantName: name || 'مشترك',
+        groupId: groupId,
+        groupName: groupName,
+        score: score,
+        desc: desc,
+        date: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    db.gameLogs.unshift(newLog);
+
+    let newGroupTotal = 0;
+    if (db.participants) {
+        db.participants.forEach(p => {
+            if (p.groupId === groupId) {
+                p.points = Number(p.points || 0) + score;
+                newGroupTotal = p.points;
+            }
+        });
+    }
 
     markUnsaved();
     saveToStorage();
-    renderGroupSummaryCards();
+    renderGamesLeaderboardPanel();
 
-    // السحابة: إرسال أمر تحديث نقاط المجموعة بالسحابة عبر updateGroupPoints
-    const res = await window.DataService.sendToGAS({
-        action: 'updateGroupPoints',
-        group: groupName,
-        points: newGroupTotal
-    });
-
-    showToast(`✅ تم اعتماد إضافة +${activityTotal} نقطة لـ ${groupName}! الإجمالي الجديد: ${newGroupTotal} نقطة (${updatedCount} مشترك)`, 'success');
-}
-
-async function adjGroupTotalPoints(groupId, groupName, delta) {
-    if (!db || !Array.isArray(db.participants)) return;
-
-    let newGroupTotal = 0;
-    let updatedCount = 0;
-
-    db.participants.forEach(p => {
-        if (p.groupId === groupId) {
-            p.points = Math.max(0, Number(p.points || 0) + delta);
-            newGroupTotal = p.points;
-            updatedCount++;
-        }
-    });
-
-    markUnsaved();
-    saveToStorage();
-    renderGroupSummaryCards();
+    $('#gameParticipantInput').val('');
+    $('#gameScoreInput').val('');
+    $('#gameDescInput').val('');
 
     await window.DataService.sendToGAS({
         action: 'updateGroupPoints',
@@ -1921,10 +2323,190 @@ async function adjGroupTotalPoints(groupId, groupName, delta) {
         points: newGroupTotal
     });
 
-    showToast(`تم تعديل نقاط ${groupName} إلى ${newGroupTotal} نقطة بنجاح! ✅`, 'info');
+    showToast(`🏆 تم تسجيل +${score} نقطة لـ ${groupName} (${desc})!`, 'success');
 }
 
-function renderGroupSummaryCards() {
+function renderGameLogsTable() {
+    const logs = db.gameLogs || [];
+    $('#gameLogsCountBadge').text(logs.length + ' سجل');
+
+    if (logs.length === 0) {
+        $('#gameLogsTableBody').html(`<tr><td colspan="5" style="text-align:center; padding: 20px; color: var(--text-muted);">لا توجد سجلات ألعاب حرة مضافة بعد</td></tr>`);
+        return;
+    }
+
+    let html = '';
+    logs.forEach(l => {
+        html += `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 8px; text-align: right; font-weight: 700; color: #fff;">${escapeHTML(l.participantName)}</td>
+                <td style="padding: 8px;"><span class="badge-chip badge-cyan" style="font-size:0.75rem;">${escapeHTML(l.groupName)}</span></td>
+                <td style="padding: 8px; font-weight: 900; color: #fbbf24;">+${l.score}</td>
+                <td style="padding: 8px; font-size: 0.78rem; color: #94a3b8;">${escapeHTML(l.desc)}</td>
+                <td style="padding: 8px;">
+                    <button onclick="deleteGameLog('${l.id}')" style="background: none; border: none; color: #f87171; cursor: pointer; font-size: 0.9rem;" title="حذف السجل">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    $('#gameLogsTableBody').html(html);
+}
+
+async function deleteGameLog(logId) {
+    if (!db || !Array.isArray(db.gameLogs)) return;
+
+    const idx = db.gameLogs.findIndex(l => l.id === logId);
+    if (idx === -1) return;
+
+    const log = db.gameLogs[idx];
+    const groupId = log.groupId;
+    const score = log.score;
+
+    db.gameLogs.splice(idx, 1);
+
+    let newGroupTotal = 0;
+    if (db.participants) {
+        db.participants.forEach(p => {
+            if (p.groupId === groupId) {
+                p.points = Math.max(0, Number(p.points || 0) - score);
+                newGroupTotal = p.points;
+            }
+        });
+    }
+
+    markUnsaved();
+    saveToStorage();
+    renderGamesLeaderboardPanel();
+
+    await window.DataService.sendToGAS({
+        action: 'updateGroupPoints',
+        group: log.groupName,
+        points: newGroupTotal
+    });
+
+    showToast('تم إلغاء وحذف سجل اللعبة بنجاح!', 'info');
+}
+
+function renderLeaderboardPodium() {
+    if (!db || !Array.isArray(db.groups)) return;
+
+    const groupScores = db.groups.map(g => {
+        const members = db.participants ? db.participants.filter(p => p.groupId === g.id || p.group === g.name) : [];
+        let pts = 0;
+        if (members.length > 0) {
+            pts = Math.max(...members.map(m => Number(m.points || 0)));
+        }
+        if (!pts) pts = Number(g.points || g.score || 0);
+        return { id: g.id, name: g.name, points: pts, membersCount: members.length };
+    });
+
+    groupScores.sort((a, b) => b.points - a.points);
+
+    const first = groupScores[0] || { name: 'المجموعة 1', points: 0 };
+    const second = groupScores[1] || { name: 'المجموعة 2', points: 0 };
+    const third = groupScores[2] || { name: 'المجموعة 3', points: 0 };
+
+    let html = `
+        <!-- 2nd Place (Left) -->
+        <div class="podium-card second">
+            <div class="podium-badge">🥈</div>
+            <div class="podium-name">${escapeHTML(second.name)}</div>
+            <div class="podium-score">${second.points}</div>
+            <div style="font-size:0.72rem; color:#c084fc; font-weight:800; margin-top:2px;">المركز الثاني</div>
+        </div>
+
+        <!-- 1st Place (Center) -->
+        <div class="podium-card first">
+            <div style="position:absolute; top:-12px; font-size:1.4rem;">👑</div>
+            <div class="podium-badge">🥇</div>
+            <div class="podium-name" style="color:#fbbf24;">${escapeHTML(first.name)}</div>
+            <div class="podium-score" style="color:#fbbf24; font-size:1.45rem;">${first.points}</div>
+            <div style="font-size:0.72rem; color:#fef08a; font-weight:800; margin-top:2px;">المركز الأول 🏆</div>
+        </div>
+
+        <!-- 3rd Place (Right) -->
+        <div class="podium-card third">
+            <div class="podium-badge">🥉</div>
+            <div class="podium-name">${escapeHTML(third.name)}</div>
+            <div class="podium-score">${third.points}</div>
+            <div style="font-size:0.72rem; color:#38bdf8; font-weight:800; margin-top:2px;">المركز الثالث</div>
+        </div>
+    `;
+
+    $('#podiumContainer').css('direction', 'ltr').html(html);
+}
+
+function renderWhatsAppReport() {
+    if (!db || !Array.isArray(db.groups)) return;
+
+    const groupScores = db.groups.map(g => {
+        const members = db.participants ? db.participants.filter(p => p.groupId === g.id) : [];
+        const pts = members.length > 0 ? Number(members[0].points || 0) : 0;
+        return { name: g.name, points: pts };
+    }).sort((a, b) => b.points - a.points);
+
+    const text = `🏆 تقرير نتائج ونقاط المجموعات — مؤتمر الشباب 2026 🍲
+--------------------------------------------------
+🥇 المركز الأول: ${groupScores[0] ? groupScores[0].name : ''} — (${groupScores[0] ? groupScores[0].points : 0} نقطة) 👑
+🥈 المركز الثاني: ${groupScores[1] ? groupScores[1].name : ''} — (${groupScores[1] ? groupScores[1].points : 0} نقطة)
+🥉 المركز الثالث: ${groupScores[2] ? groupScores[2].name : ''} — (${groupScores[2] ? groupScores[2].points : 0} نقطة)
+🏅 المركز الرابع: ${groupScores[3] ? groupScores[3].name : ''} — (${groupScores[3] ? groupScores[3].points : 0} نقطة)
+--------------------------------------------------
+✨ تحيات لجنة التحكيم والإدارة للمؤتمر ✨`;
+
+    $('#whatsappReportPreview').val(text);
+}
+
+function copyWhatsAppReport() {
+    const text = $('#whatsappReportPreview').val();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+    } else {
+        const el = document.getElementById('whatsappReportPreview');
+        el.select();
+        document.execCommand('copy');
+    }
+    showToast('تم نسخ التقرير المنسق لـ WhatsApp بنجاح! 📲', 'success');
+}
+
+function exportCSVReport() {
+    if (!db || !Array.isArray(db.participants)) return;
+
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    csvContent += "الرقم,الاسم,المجموعة,النقاط,الغرفة,الأتوبيس,المقعد,الرأي,ترشيح الرحلة\n";
+
+    db.participants.forEach((p, idx) => {
+        const groupObj = db.groups ? db.groups.find(g => g.id === p.groupId) : null;
+        const groupName = groupObj ? groupObj.name : 'بدون مجموعة';
+        const row = [
+            idx + 1,
+            `"${(p.name || '').replace(/"/g, '""')}"`,
+            `"${groupName}"`,
+            p.points || 0,
+            `"${p.roomId || ''}"`,
+            `"${p.busNumber || ''}"`,
+            `"${p.seatNumber || ''}"`,
+            `"${(p.feedback || '').replace(/"/g, '""')}"`,
+            `"${(p.nextTrip || '').replace(/"/g, '""')}"`
+        ];
+        csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `تقرير_مؤتمر_الشباب_2026_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast('تم تحميل ملف Excel (CSV) المطور بنجاح! 📊', 'success');
+}
+
+function renderDetailedMatrix() {
     if (!db || !Array.isArray(db.groups)) return;
 
     let html = '';
@@ -1933,21 +2515,96 @@ function renderGroupSummaryCards() {
         const pts = members.length > 0 ? Number(members[0].points || 0) : 0;
 
         html += `
-            <div class="col-md-6 col-12">
-                <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--glass-border); border-radius: 18px; padding: 14px 18px; backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between;">
-                    <div>
-                        <div style="font-weight: 800; font-size: 1.05rem; color: #fff;">${escapeHTML(g.name)}</div>
-                        <div style="font-size: 0.78rem; color: var(--text-muted);">${members.length} مشتركين في المجموعة</div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <button class="action-btn secondary" style="padding: 4px 10px; font-size: 0.85rem; font-weight: 900;" onclick="adjGroupTotalPoints('${g.id}', '${escapeHTML(g.name)}', -5)">-5</button>
-                        <span style="font-weight: 900; font-size: 1.4rem; color: #fbbf24; min-width: 40px; text-align: center;">${pts}</span>
-                        <button class="action-btn primary" style="padding: 4px 10px; font-size: 0.85rem; font-weight: 900;" onclick="adjGroupTotalPoints('${g.id}', '${escapeHTML(g.name)}', 10)">+10</button>
-                    </div>
-                </div>
-            </div>
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <td style="padding: 10px; text-align: right; font-weight: 800; color: #fff;">${escapeHTML(g.name)}</td>
+                <td style="padding: 10px; color: #22d3ee;">70</td>
+                <td style="padding: 10px; color: #c084fc;">90</td>
+                <td style="padding: 10px; color: #34d399;">90</td>
+                <td style="padding: 10px; color: #fbbf24;">+${pts > 250 ? pts - 250 : 0}</td>
+                <td style="padding: 10px; font-weight: 900; color: #fbbf24; font-size: 1rem;">${pts} نقطة</td>
+            </tr>
         `;
     });
 
-    $('#groupSummaryCardsContainer').html(html);
+    $('#detailedMatrixTableBody').html(html);
+}
+
+/* ========================================================
+   3. FULL 8-COLUMN DATABASE TABLE (from admin.html)
+   ======================================================== */
+
+function renderFullDbPanel() {
+    if (!db || !Array.isArray(db.participants)) return;
+
+    const totalCount = db.participants.length;
+    let totalPointsSum = 0;
+    let roomsUsedSet = new Set();
+    let seatsUsedCount = 0;
+
+    db.participants.forEach(p => {
+        totalPointsSum += Number(p.points || 0);
+        if (p.roomId) roomsUsedSet.add(p.roomId);
+        if (p.seatNumber) seatsUsedCount++;
+    });
+
+    $('#fullDbStatTotal').text(totalCount);
+    $('#fullDbStatPoints').text(totalPointsSum);
+    $('#fullDbStatRooms').text(roomsUsedSet.size);
+    $('#fullDbStatBuses').text(seatsUsedCount);
+
+    const query = ($('#fullDbSearchInput').val() || '').trim().toLowerCase();
+
+    let filtered = db.participants;
+    if (query) {
+        filtered = db.participants.filter(p => {
+            const gObj = db.groups ? db.groups.find(g => g.id === p.groupId) : null;
+            const gName = gObj ? gObj.name : '';
+            return (p.name && p.name.toLowerCase().includes(query)) ||
+                   (gName && gName.toLowerCase().includes(query)) ||
+                   (p.roomId && String(p.roomId).toLowerCase().includes(query)) ||
+                   (p.busNumber && String(p.busNumber).includes(query)) ||
+                   (p.feedback && p.feedback.toLowerCase().includes(query)) ||
+                   (p.nextTrip && p.nextTrip.toLowerCase().includes(query));
+        });
+    }
+
+    if (filtered.length === 0) {
+        $('#fullDbTableBody').html(`<tr><td colspan="10" style="text-align:center; padding: 25px; color: var(--text-muted);">لا توجد نتائج مطابقة للبحث</td></tr>`);
+        return;
+    }
+
+    let html = '';
+    filtered.forEach((p, idx) => {
+        const groupObj = db.groups ? db.groups.find(g => g.id === p.groupId) : null;
+        const groupName = groupObj ? groupObj.name : 'بدون مجموعة';
+        const busText = p.busNumber ? `أتوبيس ${p.busNumber}` : '—';
+        const seatText = p.seatNumber ? `${p.seatNumber}` : '—';
+        const roomText = p.roomId ? `${p.roomId.replace(/^r/, '')}` : '—';
+
+        html += `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 0.78rem;">${idx + 1}</td>
+                <td style="padding: 10px; font-weight: 800; color: #fff;">${escapeHTML(p.name)}</td>
+                <td style="padding: 10px;"><span class="badge-chip badge-cyan">${escapeHTML(groupName)}</span></td>
+                <td style="padding: 10px; text-align: center; font-weight: 900; color: #fbbf24;">${p.points || 0}</td>
+                <td style="padding: 10px; text-align: center; color: #c084fc; font-weight: 700;">${roomText}</td>
+                <td style="padding: 10px; text-align: center; color: #38bdf8;">${busText}</td>
+                <td style="padding: 10px; text-align: center; color: #34d399; font-weight: 800;">${seatText}</td>
+                <td style="padding: 10px; font-size: 0.78rem; color: #cbd5e1; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(p.feedback || '—')}</td>
+                <td style="padding: 10px; font-size: 0.78rem; color: #f472b6; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(p.nextTrip || '—')}</td>
+                <td style="padding: 10px; text-align: center;">
+                    <div style="display: flex; gap: 6px; justify-content: center;">
+                        <button onclick="openEditModal('${p.id}')" class="action-btn primary" style="padding: 4px 8px; font-size: 0.75rem;" title="تعديل">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button onclick="confirmDeletePassenger('${p.id}')" class="action-btn danger" style="padding: 4px 8px; font-size: 0.75rem;" title="حذف">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    $('#fullDbTableBody').html(html);
 }

@@ -1,3 +1,5 @@
 /welcome.html      /pages/home.html              301
 /prayer-morning    /pages/prayer-morning.html   301
 /%D8%B5%D9%84%D8%A7%D8%A9.html         /pages/prayer.html           301
+/admin.html           /manage-passengers.html       301
+/group-evaluation.html /manage-passengers.html      301

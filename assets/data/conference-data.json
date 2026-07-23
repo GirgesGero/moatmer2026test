@@ -30,26 +30,26 @@
     {
       "id": "g1",
       "name": "مجموعة 1",
-      "score": 100,
-      "points": 100
+      "score": 0,
+      "points": 0
     },
     {
       "id": "g2",
       "name": "مجموعة 2",
-      "score": 85,
-      "points": 85
+      "score": 0,
+      "points": 0
     },
     {
       "id": "g3",
       "name": "مجموعة 3",
-      "score": 95,
-      "points": 95
+      "score": 0,
+      "points": 0
     },
     {
       "id": "g4",
       "name": "مجموعة 4",
-      "score": 75,
-      "points": 75
+      "score": 0,
+      "points": 0
     }
   ],
   "buses": [

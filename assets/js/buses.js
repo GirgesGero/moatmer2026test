@@ -682,38 +682,8 @@ $(document).ready(function() {
 
 // تم حذف نظام الأسئلة المحلي ونقله لصفحة feedback.html المستقلة.
 
-// ========== عداد الوقت ==========
-const $countdownBar = $('#countdown-bar');
+// تم حذف وتفكيك العداد التنازلي بناءً على طلب المستخدم.
 const $videoOverlay = $('#video-overlay');
-
-const TIMING_CONFIG = { dayOfWeek: 4, startHour: 7, endHour: 19 };
-
-function updateCountdown() {
-    const now = new Date();
-    const targetDay = TIMING_CONFIG.dayOfWeek;
-
-    if (now.getDay() === targetDay && now.getHours() >= TIMING_CONFIG.endHour) { showVideoOnly(); return; }
-    if (now.getDay() === targetDay && now.getHours() < TIMING_CONFIG.startHour) { $countdownBar.removeClass('show'); $('body').removeClass('countdown-active'); return; }
-
-    if (now.getDay() === targetDay && now.getHours() >= TIMING_CONFIG.startHour && now.getHours() < TIMING_CONFIG.endHour) {
-        $countdownBar.addClass('show');
-        $('body').addClass('countdown-active');
-    } else {
-        $countdownBar.removeClass('show');
-        $('body').removeClass('countdown-active');
-    }
-
-    let targetDate = new Date();
-    targetDate.setHours(TIMING_CONFIG.endHour, 0, 0, 0);
-    const daysUntil = (targetDay - now.getDay() + 7) % 7;
-    targetDate.setDate(targetDate.getDate() + daysUntil);
-    const diff = targetDate - now;
-
-    $('#days').text(Math.floor(diff / 86400000).toString().padStart(2, '0'));
-    $('#hours').text(Math.floor((diff % 86400000) / 3600000).toString().padStart(2, '0'));
-    $('#minutes').text(Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0'));
-    $('#seconds').text(Math.floor((diff % 60000) / 1000).toString().padStart(2, '0'));
-}
 
 function showVideoOnly() {
     const $iframe = $videoOverlay.find('iframe');
@@ -727,9 +697,6 @@ function showVideoOnly() {
     $('#open-search-btn').hide();
     $('.bg-layer').hide();
 }
-
-updateCountdown();
-setInterval(updateCountdown, 1000);
 
 // ========== نظام المشاركة الاجتماعية ==========
 let lastFoundPerson = null;
