@@ -1429,9 +1429,12 @@ async function hashSHA256(str) {
             const data = encoder.encode(str);
             const hashBuffer = await crypto.subtle.digest('SHA-256', data);
             return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        } catch (e) {}
+        } catch (e) {
+            console.error('hashSHA256 error:', e);
+        }
     }
-    return 'str_' + str;
+    // إذا لم يكن crypto.subtle متاحاً (HTTP بدون HTTPS)، نرفض العملية بأمان
+    return null;
 }
 
 function togglePasswordVisibility(inputId, iconId) {
@@ -1518,7 +1521,9 @@ function initEvadingSubmitButton() {
 }
 
 function checkMasterAdminSession() {
-    if (sessionStorage.getItem('admin_logged_in') === 'true') {
+    // تحقق من token الجلسة (أكثر أماناً من قيمة ثابتة)
+    const hasToken = sessionStorage.getItem('admin_session_token');
+    if (hasToken) {
         $('#masterAdminAuthModal').removeClass('show').hide();
         return true;
     } else {
@@ -1538,43 +1543,62 @@ async function handleMasterAdminLogin(e) {
         return false;
     }
 
+    // ── حد محاولات تسجيل الدخول (Brute Force Protection) ──
+    const attemptsKey = 'login_attempts';
+    const lockKey = 'login_locked_until';
+    const MAX_ATTEMPTS = 5;
+    const LOCKOUT_MS = 5 * 60 * 1000; // 5 دقائق
+
+    const lockedUntil = parseInt(sessionStorage.getItem(lockKey) || '0');
+    if (Date.now() < lockedUntil) {
+        const remaining = Math.ceil((lockedUntil - Date.now()) / 1000);
+        $('#masterLoginErrorMsg').text(`🔒 محظور لـ ${remaining} ثانية — حاول لاحقاً`).show();
+        return false;
+    }
+
     const uLower = user.toLowerCase();
     const pTrim = pass;
     const uHash = await hashSHA256(uLower);
     const pHash = await hashSHA256(pTrim);
 
-    const isUserValid = (
-        uLower === 'elkarooz' ||
-        uLower === 'elkaeooz' ||
-        uLower === 'admin' ||
-        uHash === MASTER_USER_HASH
-    );
+    // ── مقارنة الـ Hash فقط (لا مقارنات نصية مباشرة) ──
+    if (!uHash || !pHash) {
+        $('#masterLoginErrorMsg').text('❌ خطأ في النظام — يتطلب HTTPS').show();
+        return false;
+    }
 
-    const isPassValid = (
-        pTrim === 'Elkarooz2026+' ||
-        pTrim === 'elkarooz2026+' ||
-        pTrim === 'Elkaeooz2026+' ||
-        pTrim === 'elkaeooz2026+' ||
-        pTrim === 'admin' ||
-        pTrim === '2026' ||
-        pHash === MASTER_PASS_HASH
-    );
+    const isUserValid = (uHash === MASTER_USER_HASH);
+    const isPassValid = (pHash === MASTER_PASS_HASH);
 
     if (isUserValid && isPassValid) {
-        sessionStorage.setItem('admin_logged_in', 'true');
+        // مسح سجل المحاولات وتخزين token مؤقت
+        sessionStorage.removeItem(attemptsKey);
+        sessionStorage.removeItem(lockKey);
+        const sessionToken = await hashSHA256('admin_ok_' + Date.now().toString().slice(0, -3));
+        sessionStorage.setItem('admin_session_token', sessionToken || 'ok');
         $('#masterLoginErrorMsg').hide();
         checkMasterAdminSession();
         await initMasterAdminDashboard();
         return false;
     } else {
-        $('#masterLoginErrorMsg').text('❌ اسم المستخدم أو كلمة المرور غير صحيحة').show();
+        // تسجيل محاولة فاشلة
+        const attempts = parseInt(sessionStorage.getItem(attemptsKey) || '0') + 1;
+        sessionStorage.setItem(attemptsKey, attempts.toString());
+        if (attempts >= MAX_ATTEMPTS) {
+            sessionStorage.setItem(lockKey, (Date.now() + LOCKOUT_MS).toString());
+            $('#masterLoginErrorMsg').text(`🔒 تم تعطيل تسجيل الدخول لـ 5 دقائق بعد ${MAX_ATTEMPTS} محاولات فاشلة`).show();
+        } else {
+            $('#masterLoginErrorMsg').text(`❌ اسم المستخدم أو كلمة المرور غير صحيحة (محاولة ${attempts}/${MAX_ATTEMPTS})`).show();
+        }
         return false;
     }
 }
 
 function masterAdminLogout() {
     if (confirm("هل تريد تسجيل الخروج من لوحة الإدارة؟")) {
-        sessionStorage.removeItem('admin_logged_in');
+        sessionStorage.removeItem('admin_session_token');
+        sessionStorage.removeItem('login_attempts');
+        sessionStorage.removeItem('login_locked_until');
         checkMasterAdminSession();
     }
 }

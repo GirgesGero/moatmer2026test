@@ -1,0 +1,25 @@
+# ════════════════════════════════════════
+# .gitignore — مؤتمر الشباب 2026
+# ════════════════════════════════════════
+
+# ─── ملف الإعدادات السري (يحتوي GAS URL + Token) ───
+# هذا الملف يجب أن يكون موجوداً في جهازك لكن لا يُرفع على GitHub أبداً!
+assets/js/config.js
+
+# ─── ملفات النظام ───
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── ملفات المحرر ───
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Node modules (إذا استُخدمت) ───
+node_modules/
+npm-debug.log*
+
+# ─── ملفات Gemini/Antigravity المحلية ───
+.gemini/

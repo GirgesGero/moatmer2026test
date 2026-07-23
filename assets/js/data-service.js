@@ -10,8 +10,9 @@ class DataService {
     static loadPromise = null;
     static GAS_URL_KEY = 'yc_gas_url';
     static GAS_TOKEN_KEY = 'yc_gas_token';
-    static DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbxKuHvDa7bu5SGxRK1xYPyY8aZHG_1kC8KJb5RGFDGGdUsVEc2Irr9fIzMC55mu-AiC/exec';
-    static DEFAULT_GAS_TOKEN = 'YC2026_SECURE_TOKEN_8921';
+    // القيم الافتراضية تأتي من config.js (window.YC_CONFIG) — لا تُكتب هنا مباشرة
+    static DEFAULT_GAS_URL = (window.YC_CONFIG && window.YC_CONFIG.GAS_URL) || '';
+    static DEFAULT_GAS_TOKEN = (window.YC_CONFIG && window.YC_CONFIG.GAS_TOKEN) || '';
 
     /**
      * الحصول على رابط Web App المربوط بـ Google Apps Script

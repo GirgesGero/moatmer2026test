@@ -2,30 +2,50 @@
   publish = "."
   command = ""
 
+# ─── إعادة التوجيه لـ HTTPS ───
+[[redirects]]
+  from = "http://*"
+  to   = "https://:splat"
+  status = 301
+  force  = true
+
+# ─── Security Headers لجميع الصفحات ───
 [[headers]]
   for = "/*"
   [headers.values]
-    X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    X-Frame-Options           = "DENY"
+    X-Content-Type-Options    = "nosniff"
+    X-XSS-Protection          = "1; mode=block"
+    Referrer-Policy           = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
+    Permissions-Policy        = "geolocation=(), microphone=(), camera=()"
+    Content-Security-Policy   = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://docs.google.com https://www.googleapis.com; font-src 'self' https://cdn.jsdelivr.net; frame-ancestors 'none';"
 
+# ─── حماية ملف البيانات (لا cache) ───
+[[headers]]
+  for = "/assets/data/*"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
+
+# ─── CSS Cache ───
 [[headers]]
   for = "/assets/css/*"
   [headers.values]
     Cache-Control = "public, max-age=60"
 
+# ─── JS Cache ───
 [[headers]]
   for = "/assets/js/*"
   [headers.values]
     Cache-Control = "public, max-age=60"
 
+# ─── Images Cache ───
 [[headers]]
   for = "/assets/img/*"
   [headers.values]
     Cache-Control = "public, max-age=604800"
 
+# ─── HTML Pages Cache ───
 [[headers]]
   for = "/*.html"
   [headers.values]
@@ -35,3 +55,4 @@
   for = "/pages/*.html"
   [headers.values]
     Cache-Control = "public, max-age=300, must-revalidate"
+

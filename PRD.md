@@ -1,4 +1,4 @@
-# Product Requirements Document (PRD)
+﻿# Product Requirements Document (PRD)
 
 # Youth Conference Management System
 **Version:** 2.0  
@@ -224,15 +224,15 @@ Each contains
 
 Floors
 
-↓
+â†“
 
 Rooms
 
-↓
+â†“
 
 Beds
 
-↓
+â†“
 
 Assigned Participant
 
@@ -320,7 +320,7 @@ Each room displays beds.
 
 Click bed
 
-↓
+â†“
 
 Choose participant.
 
@@ -334,7 +334,7 @@ Each bus displays seats.
 
 Click seat
 
-↓
+â†“
 
 Choose participant.
 
@@ -359,19 +359,19 @@ Before JSON generation.
 
 System must validate
 
-✓ Duplicate participant
+âœ“ Duplicate participant
 
-✓ Duplicate seat
+âœ“ Duplicate seat
 
-✓ Duplicate bed
+âœ“ Duplicate bed
 
-✓ Missing room
+âœ“ Missing room
 
-✓ Missing bus
+âœ“ Missing bus
 
-✓ Missing group
+âœ“ Missing group
 
-✓ Missing participant name
+âœ“ Missing participant name
 
 If any validation fails
 
@@ -582,25 +582,25 @@ Conference data belongs only to JSON.
 
 The project is considered complete when:
 
-✓ Dashboard works correctly.
+âœ“ Dashboard works correctly.
 
-✓ All modules read from JSON.
+âœ“ All modules read from JSON.
 
-✓ Data Builder generates valid JSON.
+âœ“ Data Builder generates valid JSON.
 
-✓ No duplicated data exists.
+âœ“ No duplicated data exists.
 
-✓ Rooms display correctly.
+âœ“ Rooms display correctly.
 
-✓ Buses display correctly.
+âœ“ Buses display correctly.
 
-✓ Search works globally.
+âœ“ Search works globally.
 
-✓ Groups display correctly.
+âœ“ Groups display correctly.
 
-✓ Mobile experience is smooth.
+âœ“ Mobile experience is smooth.
 
-✓ Project runs without backend.
+âœ“ Project runs without backend.
 
 ---
 
