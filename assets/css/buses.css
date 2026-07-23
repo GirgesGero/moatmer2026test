@@ -736,40 +736,41 @@ body.seats-body {
 /* خفت بسيط على المقاعد الباقية عند hover */
 .seats-grid:has(.seat:hover) .seat:not(:hover),
 .seats-grid:has(.seat.hovered) .seat:not(.hovered) {
-    opacity: 0.45;
-    filter: brightness(0.65) saturate(0.5) blur(0.5px);
-    transition: all 0.35s ease;
+    opacity: 0.5;
+    filter: brightness(0.7) saturate(0.6);
+    transition: all 0.3s ease;
+    transform: scale(0.95);
 }
 
 /* =========================================
-   Hover مستقر - كهرماني
+   Hover مستقر - كهرماني ذهبي
    ========================================= */
 .seat:hover,
 .seat.hovered {
-    transform: translateY(-6px) scale(1.22) rotate(1deg);
-    z-index: 100;
+    transform: translateY(-5px) scale(1.14) rotate(0.8deg);
+    z-index: 200;
     background: linear-gradient(180deg, var(--hover-amber-light) 0%, var(--hover-amber) 40%, var(--hover-amber-dark) 100%) !important;
     box-shadow:
-        0 15px 35px rgba(0, 0, 0, 0.65),
-        0 4px 20px rgba(245, 158, 11, 0.5),
+        0 12px 28px rgba(0, 0, 0, 0.6),
+        0 4px 16px rgba(245, 158, 11, 0.55),
         inset 0 2px 0 rgba(255,255,255,0.35),
         inset 0 -3px 6px rgba(0,0,0,0.2) !important;
     border: 2px solid rgba(251, 191, 36, 0.95) !important;
-    filter: brightness(1.05) saturate(1.15);
+    filter: brightness(1.08) saturate(1.2);
 }
 
 .seat.booked:hover,
 .seat.booked.hovered {
-    transform: translateY(-6px) scale(1.22) rotate(-1deg);
-    z-index: 100;
+    transform: translateY(-5px) scale(1.14) rotate(-0.8deg);
+    z-index: 200;
     background: linear-gradient(180deg, var(--hover-amber-light) 0%, var(--hover-amber) 40%, var(--hover-amber-dark) 100%) !important;
     box-shadow:
-        0 15px 35px rgba(0, 0, 0, 0.65),
-        0 4px 20px rgba(245, 158, 11, 0.5),
+        0 12px 28px rgba(0, 0, 0, 0.6),
+        0 4px 16px rgba(245, 158, 11, 0.55),
         inset 0 2px 0 rgba(255,255,255,0.35),
         inset 0 -3px 6px rgba(0,0,0,0.2) !important;
     border: 2px solid rgba(251, 191, 36, 0.95) !important;
-    filter: brightness(1.05) saturate(1.15);
+    filter: brightness(1.08) saturate(1.2);
 }
 
 /* إخفاء الأنماط الزائفة عند hover */

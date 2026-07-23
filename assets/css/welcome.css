@@ -6,29 +6,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-    --bg-deepest: #070d19;
-    --bg-deep:    #0b1121;
-    --bg-dark:    #0f172a;
-    --bg-mid:     #111827;
-    --bg-light:   #1e293b;
+    --bg-deepest: #0e172a;
+    --bg-deep:    #141f36;
+    --bg-dark:    #1b2842;
+    --bg-mid:     #1f2e4a;
+    --bg-light:   #2d3e5b;
 
     --primary:        #06b6d4;
-    --primary-light:  #22d3ee;
+    --primary-light:  #38bdf8;
     --primary-dark:   #0891b2;
-    --primary-glow:   rgba(6, 182, 212, 0.4);
-    --primary-subtle: rgba(6, 182, 212, 0.1);
+    --primary-glow:   rgba(56, 189, 248, 0.45);
+    --primary-subtle: rgba(6, 182, 212, 0.15);
 
     --gold:        #f59e0b;
     --gold-light:  #fbbf24;
-    --gold-glow:   rgba(245, 158, 11, 0.4);
+    --gold-glow:   rgba(245, 158, 11, 0.45);
 
     --pink:        #db2777;
     --pink-light:  #f472b6;
-    --pink-glow:   rgba(219, 39, 119, 0.4);
+    --pink-glow:   rgba(219, 39, 119, 0.45);
 
-    --text-main:      #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-muted:     #64748b;
+    --text-main:      #ffffff;
+    --text-secondary: #cbd5e1;
+    --text-muted:     #94a3b8;
 }
 
 * {
@@ -141,12 +141,12 @@ body.welcome-body {
 /* ─── شعار الهولوغرام الفاخر ─── */
 .welcome-logo-container {
     position: relative;
-    width: 200px;
-    height: 200px;
+    width: 250px;
+    height: 250px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0rem;
 }
 
 .logo-portal-ring {
@@ -157,19 +157,6 @@ body.welcome-body {
     pointer-events: none;
 }
 
-.ring-outer {
-    width: 190px; height: 190px;
-    border: 1.5px dashed rgba(245, 158, 11, 0.35);
-    filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.25));
-    animation: spinPortalOuter 30s linear infinite;
-}
-
-.ring-inner {
-    width: 165px; height: 165px;
-    border: 1.2px solid rgba(6, 182, 212, 0.3);
-    box-shadow: inset 0 0 16px rgba(6, 182, 212, 0.15);
-    animation: spinPortalInner 22s linear infinite reverse;
-}
 
 @keyframes spinPortalOuter {
     from { transform: translate(-50%, -50%) rotate(0deg); }
@@ -184,23 +171,20 @@ body.welcome-body {
 .welcome-logo-glow {
     position: absolute;
     width: 130px; height: 130px;
-    border-radius: 50%;
+    
     background: radial-gradient(circle, rgba(6, 182, 212, 0.35) 0%, transparent 70%);
     filter: blur(8px);
 }
 
 .welcome-logo {
-    width: 136px;
-    height: 136px;
-    border-radius: 36px;
+    width: 250px;
+    height: 250px;
+
     object-fit: contain;
     position: relative;
     z-index: 2;
-    border: 2px solid rgba(6, 182, 212, 0.3);
-    box-shadow:
-        0 12px 36px rgba(0, 0, 0, 0.65),
-        0 0 0 4px rgba(6, 182, 212, 0.08);
-    animation: logoFloat 4s ease-in-out infinite;
+   
+    animation: logoFloat 3s ease-in-out infinite; 
 }
 
 @keyframes logoFloat {
@@ -266,7 +250,7 @@ body.welcome-body {
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 32px;
-    padding: 2.2rem 2rem;
+    padding: 2rem 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;

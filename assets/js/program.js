@@ -131,7 +131,8 @@
             </button>
             ${timeHtml}
             <div class="activity-content">
-                <div class="activity-title"><i class="${t.icon}" style="color:${t.color};margin-left:.4rem;font-size:.85em"></i>${escapeHTML(act.title)}</div>
+                <div class="activity-watermark-icon"><i class="${t.icon}"></i></div>
+                <div class="activity-title"><i class="${t.icon}" style="color:${t.color};margin-left:.4rem;"></i>${escapeHTML(act.title)}</div>
                 <div class="activity-meta">
                     ${act.place ? `<span class="activity-chip"><i class="bi bi-geo-alt-fill"></i>${escapeHTML(act.place)}</span>` : ''}
                     ${act.notes ? `<span class="activity-chip"><i class="bi bi-chat-text-fill"></i>${escapeHTML(act.notes)}</span>` : ''}
@@ -482,7 +483,7 @@
             }
 
             if (matchFilter) {
-                el.style.display = 'block';
+                el.style.display = 'flex';
                 setTimeout(() => {
                     el.style.opacity = '1';
                     el.style.transform = 'translateY(0)';

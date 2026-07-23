@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -109,6 +109,11 @@
                             <feGaussianBlur stdDeviation="3" result="blur" />
                             <feComposite in="SourceGraphic" in2="blur" operator="over" />
                         </filter>
+
+                        <!-- Hub Logo Circular ClipPath -->
+                        <clipPath id="hub-clip">
+                            <circle cx="150" cy="150" r="68" />
+                        </clipPath>
                     </defs>
 
                     <!-- Rotating Wheel Group (10 Sections, 36 degrees each) -->
@@ -181,18 +186,14 @@
                     <!-- Inner gear neon line -->
                     <circle cx="150" cy="150" r="72" fill="none" stroke="#22d3ee" stroke-width="1.5" filter="drop-shadow(0 0 3px #22d3ee)" stroke-opacity="0.85" />
                     <!-- Hub Center Background -->
-                    <circle cx="150" cy="150" r="71" fill="#040812" />
+                    <circle cx="150" cy="150" r="71" fill="#081020" stroke="#f59e0b" stroke-width="2" filter="drop-shadow(0 0 8px rgba(245, 158, 11, 0.4))" />
+
+                    <!-- Logo Centered inside Hub SVG (100% SVG Vector Aligned) -->
+                    <image href="../assets/img/logo-hero.png" xlink:href="../assets/img/logo-hero.png" x="90" y="90" width="120" height="120" preserveAspectRatio="xMidYMid meet" clip-path="url(#hub-clip)" onerror="this.setAttribute('href', 'assets/img/logo-hero.png'); this.setAttribute('xlink:href', 'assets/img/logo-hero.png');" />
 
                     <!-- Statically positioned pointer at 180 degrees (left side, pointing right) -->
                     <path d="M 4 143 L 13 150 L 4 157 Z" fill="#22d3ee" stroke="#22d3ee" stroke-width="1.5" filter="drop-shadow(0 0 4px #22d3ee)" />
                 </svg>
-
-                <!-- HTML Logo Centered inside Hub -->
-                <div class="dial-hub">
-                    <div class="dial-hub-logo-wrap">
-                        <img src="../assets/img/logo-hero.png" alt="شعار المؤتمر" class="dial-hub-logo">
-                    </div>
-                </div>
             </div>
 
             <!-- ════ بادج القسم النشط (بجانب السهم) ════ -->
@@ -264,5 +265,6 @@
     <script src="../assets/js/core.js"></script>
     <script src="../assets/js/home.js"></script>
 
+<script src="../assets/js/bg-3d.js?v=3.0" defer></script>
 </body>
 </html>

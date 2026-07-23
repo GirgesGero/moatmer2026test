@@ -394,9 +394,22 @@ $(document).ready(function() {
 
         window.addEventListener('yc_live_data_updated', function(e) {
             if (e.detail && Array.isArray(e.detail.participants)) {
-                passengers = e.detail.participants;
-                renderBusSeats();
-                renderBusStats();
+                // تحديث مصفوفة الركاب
+                const allParticipants = e.detail.participants;
+                passengers = allParticipants
+                    .filter(p => p.busNumber !== null && p.busNumber !== undefined && p.busNumber !== '')
+                    .map(p => ({
+                        name: p.name,
+                        bus: parseInt(p.busNumber),
+                        seat: parseInt(p.seatNumber),
+                        elementId: `bus${p.busNumber}-seat-${p.seatNumber}`
+                    }));
+
+                // مسح حالة المقاعد القديمة
+                $('.seat').removeClass('booked').find('.passenger-name').text('');
+
+                // إعادة تعبئة المقاعد بالبيانات الجديدة
+                populateData();
             }
         });
     }

@@ -1,6 +1,6 @@
 /* =====================================================
    accommodation.js — مؤتمر الشباب 2026
-   عرض التسكين بشكل واضح وجميل
+   ممر فندقي ثلاثي الأبعاد تفاعلي للغرف والأسرّة
    ===================================================== */
 (function () {
     'use strict';
@@ -9,76 +9,173 @@
     let activeGender = 'all';
 
     /* ══════════════════════════════════════════════════
-       1. بناء بطاقة الغرفة
+       1. كارت غرفتي السريعة (My Quick Room Access)
        ══════════════════════════════════════════════════ */
-    function renderRoomCard(room) {
+    function checkAndRenderMyQuickRoomCard() {
+        const container = document.getElementById('my-quick-room-container');
+        if (!container) return;
+
+        try {
+            const profile = JSON.parse(localStorage.getItem('yc2_user_profile') || '{}');
+            if (!profile || !profile.name || !profile.room) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const floorText = profile.floor === 1 ? 'الأول (ولاد)' : 'الثاني (بنات)';
+            const bedText   = profile.bed ? ` • السرير رقم ${profile.bed}` : '';
+
+            container.innerHTML = `
+                <div class="my-quick-room-card">
+                    <div class="my-quick-room-info">
+                        <div class="my-quick-room-icon">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <div class="my-quick-room-text">
+                            <div>أهلاً بك يا ${profile.name}! 🎯</div>
+                            <div style="font-size:0.75rem; color:#cbd5e1; font-weight:700; margin-top:2px;">
+                                غرفتك: <strong style="color:#fbbf24;">${profile.room}</strong> (الدور ${floorText})${bedText}
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-goto-my-room" id="btn-goto-my-room">
+                        <i class="bi bi-geo-alt-fill me-1"></i> خذني لغرفتي
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('btn-goto-my-room')?.addEventListener('click', () => {
+                const matchedRoom = (window.rooms || []).find(r => r.name === profile.room || YC.normalizeArabic(r.name) === YC.normalizeArabic(profile.room));
+                if (matchedRoom) {
+                    const blockEl = document.getElementById(`room-block-${matchedRoom.id}`);
+                    if (blockEl) {
+                        blockEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        const door = blockEl.querySelector('.room-door');
+                        door?.classList.add('door-spotlight-glow');
+                        setTimeout(() => {
+                            door?.classList.remove('door-spotlight-glow');
+                            openRoomModal(matchedRoom);
+                        }, 600);
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Error rendering quick room card:', e);
+        }
+    }
+
+    /* ══════════════════════════════════════════════════
+       2. بناء مكون الباب الخشبي الفندقي (3D Hotel Door)
+       ══════════════════════════════════════════════════ */
+    function buildDoorEl(room, sideClass) {
         const isBoysRoom = room.gender === 'boys';
-        const color     = isBoysRoom ? '#06b6d4' : '#fb7185';
+        const color     = isBoysRoom ? '#38bdf8' : '#f87171';
         const genderTxt = isBoysRoom ? 'ولاد 🧒' : 'بنات 👧';
-        const floorTxt  = room.floor === 1 ? 'الدور الأول' : 'الدور الثاني';
         const roomNum   = room.name.replace('غرفة ', '');
         const occupied  = room.persons.filter(Boolean).length;
         const pct       = Math.round((occupied / room.capacity) * 100);
 
-        // ─── صفوف الأسرّة ───
-        const bedsHtml = room.persons.map((p, i) => {
-            const bedNum = i + 1;
-            const icon   = p ? (isBoysRoom ? 'bi-person-standing' : 'bi-person-standing-dress') : 'bi-moon-fill';
-            const nameDisp = p ? p : 'سرير شاغر';
-            const occupied = p ? 'occupied' : 'empty';
-            return `
-            <div class="bed-row ${occupied} ${room.gender}" data-bed="${bedNum}">
-                <div class="bed-num-tag">${bedNum}</div>
-                <div class="bed-person-icon">
-                    <i class="bi ${icon}"></i>
-                </div>
-                <div class="bed-person-name">${p || '<span style="color:#475569;font-style:italic;">شاغر</span>'}</div>
-                ${p ? `<div class="bed-occ-dot"></div>` : ''}
-            </div>`;
-        }).join('');
+        let statusClass = 'status-partial';
+        let statusText  = 'متاح';
+        let barColor    = '#f59e0b';
 
-        // ─── شريط الإشغال ───
-        const fillColor = pct >= 90 ? '#ef4444' : pct >= 60 ? '#f59e0b' : '#10b981';
+        if (occupied === 0) {
+            statusClass = 'status-empty';
+            statusText  = 'هنا مكان';
+            barColor    = '#22c55e';
+        } else if (occupied === room.capacity) {
+            statusClass = 'status-full';
+            statusText  = 'مكتملة';
+            barColor    = '#ef4444';
+        }
 
-        const card = document.createElement('div');
-        card.className = `room-card-v3 ${room.gender}`;
-        card.id = `room-block-${room.id}`;
-        card.innerHTML = `
-        <div class="room-card-v3-header" style="border-bottom: 1px solid ${color}22;">
-            <div class="room-card-v3-left">
-                <div class="room-icon-v3" style="background:${color}18; color:${color}; border:1px solid ${color}33;">
-                    <i class="bi bi-door-closed-fill"></i>
+        const doorWrapper = document.createElement('div');
+        doorWrapper.className = `room-door-wrapper ${room.gender}`;
+        doorWrapper.id = `room-block-${room.id}`;
+
+        const door = document.createElement('div');
+        door.className = `room-door ${sideClass} ${statusClass} ${room.gender}`;
+        
+        door.innerHTML = `
+            <div class="door-handle"></div>
+            
+            <div class="door-brass-plate">
+                <div class="door-number">${roomNum}</div>
+                <span class="door-status-text">${statusText}</span>
+            </div>
+
+            <div class="door-occupancy-info">
+                <div class="door-occ-counts">
+                    <span><i class="bi bi-person-fill" style="color:${color};"></i> ${occupied}/${room.capacity}</span>
+                    <span style="color:${color}; font-size:0.6rem;">${genderTxt}</span>
                 </div>
-                <div>
-                    <div class="room-name-v3">غرفة <span style="color:${color};">${roomNum}</span></div>
-                    <div class="room-meta-v3">
-                        <span style="color:${color}; font-size:0.7rem;">${genderTxt}</span>
-                        <span style="color:#475569;">•</span>
-                        <span style="color:#64748b; font-size:0.7rem;">${floorTxt}</span>
-                    </div>
+                <div class="door-occ-bar-bg">
+                    <div class="door-occ-bar-fill" style="width:${pct}%; background:${barColor};"></div>
                 </div>
             </div>
-            <div class="room-card-v3-right">
-                <div class="room-occ-circle" style="background:${color}18; border:2px solid ${color}44; color:${color};">
-                    <span class="occ-num">${occupied}</span>
-                    <span class="occ-total">/${room.capacity}</span>
-                </div>
-            </div>
-        </div>
 
-        <div class="room-occ-bar-wrap">
-            <div class="room-occ-bar" style="width:${pct}%; background:${fillColor};"></div>
-        </div>
+            <div class="door-light-leak"></div>
+        `;
 
-        <div class="room-beds-list">
-            ${bedsHtml}
-        </div>`;
+        door.addEventListener('click', () => {
+            door.classList.add('open');
+            setTimeout(() => {
+                openRoomModal(room);
+                door.classList.remove('open');
+            }, 300);
+        });
 
-        return card;
+        doorWrapper.appendChild(door);
+        return doorWrapper;
     }
 
     /* ══════════════════════════════════════════════════
-       2. رسم الكل — شبكة بطاقات منظمة حسب الدور
+       3. بناء ممر الأدوار (3D Hallway Scene)
+       ══════════════════════════════════════════════════ */
+    function buildHallwaySection(floorRooms, label, color) {
+        const container = document.createElement('div');
+        container.className = 'floor-hallway-container';
+
+        // شارات العنوان
+        const header = document.createElement('div');
+        header.className = 'floor-title-badge';
+        header.innerHTML = `
+            <div class="line" style="background:${color};"></div>
+            <div class="label" style="color:${color};">${label}</div>
+            <div class="line" style="background:${color};"></div>
+        `;
+        container.appendChild(header);
+
+        // مشهد الممر
+        const scene = document.createElement('div');
+        scene.className = 'hallway-scene';
+        scene.innerHTML = `
+            <div class="hallway-ceiling">
+                <div class="ceiling-light"></div>
+                <div class="ceiling-light"></div>
+                <div class="ceiling-light"></div>
+            </div>
+            <div class="hallway-floor"></div>
+            <div class="hallway-center-path"></div>
+        `;
+
+        // شبكة الممر المتوازية (أبواب يمين ويسار)
+        const corridor = document.createElement('div');
+        corridor.className = 'hallway-corridor';
+
+        floorRooms.forEach((room, index) => {
+            const sideClass = (index % 2 === 0) ? 'door-left' : 'door-right';
+            const doorEl = buildDoorEl(room, sideClass);
+            corridor.appendChild(doorEl);
+        });
+
+        scene.appendChild(corridor);
+        container.appendChild(scene);
+        return container;
+    }
+
+    /* ══════════════════════════════════════════════════
+       4. رسم الكل — الممر الفندقي
        ══════════════════════════════════════════════════ */
     function renderAll(rooms) {
         if (!list) return;
@@ -91,8 +188,8 @@
         if (!filtered.length) {
             list.innerHTML = `
             <div style="text-align:center; padding:60px 20px; color:#64748b;">
-                <i class="bi bi-house-door" style="font-size:2.5rem; display:block; margin-bottom:10px;"></i>
-                <div style="font-size:0.9rem; font-weight:700;">لا توجد غرف مطابقة</div>
+                <i class="bi bi-door-closed" style="font-size:2.8rem; display:block; margin-bottom:10px; color:#475569;"></i>
+                <div style="font-size:0.95rem; font-weight:700;">لا توجد غرف مطابقة للبحث</div>
             </div>`;
             return;
         }
@@ -106,15 +203,15 @@
         statsEl.className = 'accomm-stats-bar';
         statsEl.innerHTML = `
         <div class="stat-item">
-            <i class="bi bi-door-closed-fill" style="color:#06b6d4;"></i>
+            <i class="bi bi-door-closed-fill" style="color:#38bdf8;"></i>
             <span>${filtered.length} غرفة</span>
         </div>
         <div class="stat-item">
-            <i class="bi bi-person-fill" style="color:#10b981;"></i>
+            <i class="bi bi-person-check-fill" style="color:#22c55e;"></i>
             <span>${totalOccupied} مشغول</span>
         </div>
         <div class="stat-item">
-            <i class="bi bi-moon-fill" style="color:#f59e0b;"></i>
+            <i class="bi bi-moon-stars-fill" style="color:#f59e0b;"></i>
             <span>${totalFree} شاغر</span>
         </div>`;
         list.appendChild(statsEl);
@@ -122,43 +219,34 @@
         // ─── الدور الأول ───
         const floor1 = filtered.filter(r => r.floor === 1);
         if (floor1.length) {
-            const sec = buildFloorSection(floor1, 'الدور الأول — ولاد 🧒', '#06b6d4');
+            const sec = buildHallwaySection(floor1, '🚪 الدور الأول — ممر الشباب 🧒', '#38bdf8');
             list.appendChild(sec);
+        }
+
+        // ─── فاصل المصعد والسلالم الفندقية ───
+        if (floor1.length && filtered.some(r => r.floor === 2)) {
+            const elevatorDivider = document.createElement('div');
+            elevatorDivider.className = 'hotel-elevator-divider';
+            elevatorDivider.innerHTML = `
+                <span class="hotel-elevator-icon"><i class="bi bi-border-style"></i> 🛗</span>
+                <span>مصعد الفندق والسلالم الرئيسية — الانتقال للدور الأعلى</span>
+                <span class="hotel-elevator-icon">🪜</span>
+            `;
+            list.appendChild(elevatorDivider);
         }
 
         // ─── الدور الثاني ───
         const floor2 = filtered.filter(r => r.floor === 2);
         if (floor2.length) {
-            const sec = buildFloorSection(floor2, 'الدور الثاني — بنات 👧', '#fb7185');
+            const sec = buildHallwaySection(floor2, '🚪 الدور الثاني — ممر البنات 👧', '#f87171');
             list.appendChild(sec);
         }
-    }
 
-    function buildFloorSection(floorRooms, label, color) {
-        const sec = document.createElement('div');
-        sec.className = 'floor-section';
-
-        const header = document.createElement('div');
-        header.className = 'floor-header';
-        header.innerHTML = `
-        <div class="floor-header-line" style="background:${color};"></div>
-        <div class="floor-header-label" style="color:${color};">${label}</div>
-        <div class="floor-header-line" style="background:${color};"></div>`;
-        sec.appendChild(header);
-
-        const grid = document.createElement('div');
-        grid.className = 'rooms-grid-v3';
-        floorRooms.forEach(room => {
-            const card = renderRoomCard(room);
-            card.addEventListener('click', () => openRoomModal(room));
-            grid.appendChild(card);
-        });
-        sec.appendChild(grid);
-        return sec;
+        checkAndRenderMyQuickRoomCard();
     }
 
     /* ══════════════════════════════════════════════════
-       3. مودال تفاصيل الغرفة (قائمة أسرّة واضحة)
+       5. مودال الغرفة المعماري داخل الغرفة (Architectural Room View)
        ══════════════════════════════════════════════════ */
     function openRoomModal(room) {
         const titleEl = document.getElementById('room-modal-title');
@@ -166,66 +254,81 @@
         if (!titleEl || !gridEl) return;
 
         const isBoysRoom = room.gender === 'boys';
-        const color      = isBoysRoom ? '#06b6d4' : '#fb7185';
-        const genderText = isBoysRoom ? 'ولاد' : 'بنات';
+        const color      = isBoysRoom ? '#38bdf8' : '#f87171';
+        const genderText = isBoysRoom ? 'ولاد 🧒' : 'بنات 👧';
         const floorText  = room.floor === 1 ? 'الأول' : 'الثاني';
         const occupied   = room.persons.filter(Boolean).length;
+        const pct        = Math.round((occupied / room.capacity) * 100);
 
-        titleEl.innerHTML = `${room.name} <small style="color:${color}; font-size:0.75rem; font-weight:700;">${genderText} — الدور ${floorText}</small>`;
-
-        const bedsHtml = room.persons.map((p, i) => {
-            const bedNum = i + 1;
-            const isFull = !!p;
-            const icon   = isFull ? (isBoysRoom ? 'bi-person-standing' : 'bi-person-standing-dress') : 'bi-moon-fill';
-            return `
-            <div style="
-                display:flex; align-items:center; gap:12px;
-                padding:10px 14px; border-radius:14px; margin-bottom:7px;
-                background:${isFull ? `${color}12` : 'rgba(255,255,255,0.03)'};
-                border:1px solid ${isFull ? `${color}33` : 'rgba(255,255,255,0.06)'};
-                transition:transform 0.2s;
-            " onmouseenter="this.style.transform='scale(1.01)'" onmouseleave="this.style.transform='scale(1)'">
-                <div style="
-                    width:36px; height:36px; border-radius:10px; flex-shrink:0;
-                    background:${isFull ? `${color}20` : 'rgba(255,255,255,0.05)'};
-                    display:flex; align-items:center; justify-content:center;
-                    color:${isFull ? color : '#475569'}; font-size:1.1rem;
-                "><i class="bi ${icon}"></i></div>
-                <div style="flex:1;">
-                    <div style="font-size:0.88rem; font-weight:${isFull ? '800' : '600'}; color:${isFull ? '#f1f5f9' : '#64748b'};">
-                        ${isFull ? p : 'سرير شاغر'}
-                    </div>
-                    <div style="font-size:0.65rem; color:#475569;">سرير رقم ${bedNum}</div>
+        titleEl.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between w-100 pe-3">
+                <div>
+                    <span class="fs-5">${room.name}</span>
+                    <span class="badge ms-2" style="background:${color}22; color:${color}; border:1px solid ${color}44; font-size:0.75rem;">
+                        ${genderText} — الدور ${floorText}
+                    </span>
                 </div>
-                <div style="
-                    width:8px; height:8px; border-radius:50%;
-                    background:${isFull ? color : 'rgba(255,255,255,0.1)'};
-                    box-shadow:${isFull ? `0 0 6px ${color}` : 'none'};
-                "></div>
+            </div>
+        `;
+
+        // بناء الأسرّة داخل المخطط المعماري
+        const bedsCardsHtml = room.persons.map((personName, index) => {
+            const bedNum = index + 1;
+            const isFull = !!personName;
+            const statusClass = isFull ? 'occupied' : 'empty';
+            const icon = isFull ? (isBoysRoom ? 'bi-person-fill' : 'bi-person-fill-dress') : 'bi-moon-stars-fill';
+
+            return `
+            <div class="bed-3d-card ${room.gender} ${statusClass}" style="animation-delay: ${index * 70}ms;">
+                <span class="bed-number-badge">سرير #${bedNum}</span>
+                <div class="bed-pillow"></div>
+                <div style="font-size:1.4rem; color:${isFull ? color : '#64748b'}; margin: 2px 0;">
+                    <i class="bi ${icon}"></i>
+                </div>
+                <div class="bed-person-name-title">
+                    ${isFull ? personName : 'شاغر 😴'}
+                </div>
             </div>`;
         }).join('');
 
         gridEl.innerHTML = `
-        <div style="text-align:center; margin-bottom:14px;">
-            <div style="font-size:2rem; font-weight:900; color:${color};">${occupied}<span style="font-size:1rem; color:#64748b;">/${room.capacity}</span></div>
-            <div style="font-size:0.72rem; color:#64748b; font-weight:700;">${occupied === room.capacity ? '🔴 ممتلئة' : occupied === 0 ? '🟢 شاغرة' : '🟡 جزئياً'}</div>
-            <div style="height:4px; background:rgba(255,255,255,0.06); border-radius:99px; margin:8px 0; overflow:hidden;">
-                <div style="height:100%; width:${Math.round((occupied/room.capacity)*100)}%; background:${color}; border-radius:99px; transition:width 0.5s ease;"></div>
+            <div class="text-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1 px-2">
+                    <span class="fw-bold text-slate-300" style="font-size:0.85rem;">نسبة الإشغال</span>
+                    <span class="fw-bold" style="color:${color};">${occupied} من ${room.capacity} أسرة</span>
+                </div>
+                <div class="progress" style="height: 6px; background: rgba(255,255,255,0.08); border-radius:99px;">
+                    <div class="progress-bar" style="width: ${pct}%; background: ${color}; border-radius:99px; transition: width 0.6s ease;"></div>
+                </div>
             </div>
-        </div>
-        ${bedsHtml}`;
+
+            <div class="room-architectural-plan">
+                <div class="plan-door-entrance">🚪 مدخل الغرفة</div>
+                
+                <div class="beds-architecture-grid">
+                    ${bedsCardsHtml}
+                </div>
+
+                <div class="plan-window"></div>
+            </div>
+        `;
+
+        // تشغيل أنيميشن ظهور الأسرّة Stagger Pop-in
+        setTimeout(() => {
+            document.querySelectorAll('.bed-3d-card').forEach(card => {
+                card.classList.add('animate-pop');
+            });
+        }, 50);
 
         const modalEl = document.getElementById('roomDetailsModal');
         if (modalEl) {
-            modalEl.classList.remove('boys', 'girls');
-            modalEl.classList.add(room.gender);
             const myModal = new bootstrap.Modal(modalEl);
             myModal.show();
         }
     }
 
     /* ══════════════════════════════════════════════════
-       4. فلتر + بحث
+       6. فلتر + بحث
        ══════════════════════════════════════════════════ */
     function applyFilters(q, autoOpenModal = false) {
         const query = (YC.normalizeArabic(q || '')).trim();
@@ -239,27 +342,29 @@
             return nameMatch || personMatch;
         });
 
-        // تحديث التظليل مباشرةً دون إعادة رسم
+        // تحديث التظليل مباشرةً
         if (!query) {
-            document.querySelectorAll('.room-card-v3').forEach(el => {
-                el.classList.remove('highlighted', 'dimmed');
+            document.querySelectorAll('.room-door-wrapper').forEach(el => {
+                const door = el.querySelector('.room-door');
+                door?.classList.remove('highlighted', 'dimmed', 'door-spotlight-glow');
                 const g = el.classList.contains('boys') ? 'boys' : 'girls';
                 el.style.display = (activeGender === 'all' || g === activeGender) ? '' : 'none';
             });
         } else {
             const matchedIds = new Set(filtered.map(r => r.id));
-            document.querySelectorAll('.room-card-v3').forEach(el => {
+            document.querySelectorAll('.room-door-wrapper').forEach(el => {
                 const roomId = el.id.replace('room-block-', '');
+                const door = el.querySelector('.room-door');
                 const g = el.classList.contains('boys') ? 'boys' : 'girls';
                 const genderOk = activeGender === 'all' || g === activeGender;
                 if (!genderOk) { el.style.display = 'none'; return; }
                 el.style.display = '';
                 if (matchedIds.has(roomId)) {
-                    el.classList.add('highlighted');
-                    el.classList.remove('dimmed');
+                    door?.classList.add('highlighted');
+                    door?.classList.remove('dimmed');
                 } else {
-                    el.classList.add('dimmed');
-                    el.classList.remove('highlighted');
+                    door?.classList.add('dimmed');
+                    door?.classList.remove('highlighted');
                 }
             });
         }
@@ -285,21 +390,26 @@
             }
         }
 
-        // فتح المودال تلقائياً
+        // فتح المودال تلقائياً والتمرير بأسلوب Spotlight
         if (autoOpenModal && query && filtered.length > 0) {
             const matched = filtered[0];
             const blockEl = document.getElementById(`room-block-${matched.id}`);
             if (blockEl) {
                 setTimeout(() => {
-                    openRoomModal(matched);
                     blockEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const door = blockEl.querySelector('.room-door');
+                    door?.classList.add('door-spotlight-glow');
+                    setTimeout(() => {
+                        openRoomModal(matched);
+                        door?.classList.remove('door-spotlight-glow');
+                    }, 400);
                 }, 100);
             }
         }
     }
 
     /* ══════════════════════════════════════════════════
-       5. الأحداث
+       7. الأحداث
        ══════════════════════════════════════════════════ */
     document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.addEventListener('click', function() {
@@ -318,13 +428,17 @@
     }
 
     /* ══════════════════════════════════════════════════
-       6. Overlay البحث الأولي
+       8. Overlay البحث الأولي مع الاقتراحات الحية ورسالة "اسمك مش موجود"
        ══════════════════════════════════════════════════ */
     function initSearchOverlay() {
-        const overlay    = document.getElementById('accomm-search-overlay');
-        const popupInput = document.getElementById('accomm-popup-search-input');
-        const popupBtn   = document.getElementById('accomm-popup-search-btn');
-        const closeBtn   = document.getElementById('accomm-popup-close-btn');
+        const overlay       = document.getElementById('accomm-search-overlay');
+        const popupInput    = document.getElementById('accomm-popup-search-input');
+        const popupBtn      = document.getElementById('accomm-popup-search-btn');
+        const closeBtn      = document.getElementById('accomm-popup-close-btn');
+        const suggestionsEl = document.getElementById('accomm-search-suggestions');
+        const noMatchEl     = document.getElementById('accomm-no-match-msg');
+        const btnsWrap      = document.getElementById('accomm-search-btns-wrap');
+
         if (!overlay) return;
 
         if (!sessionStorage.getItem('search_shown_accomm')) {
@@ -332,20 +446,81 @@
             setTimeout(() => popupInput?.focus(), 500);
         }
 
-        function doSearch() {
-            const val = (popupInput?.value || '').trim();
-            if (!val) {
-                overlay.style.display = 'none';
-                sessionStorage.setItem('search_shown_accomm', 'true');
+        // 1. توليد الخيارات عند تطابق الأحرف (Live Autocomplete Suggestions)
+        function renderLiveSuggestions() {
+            if (!suggestionsEl || !popupInput) return;
+            const val = popupInput.value.trim();
+            const nq = YC.normalizeArabic(val);
+
+            if (noMatchEl) noMatchEl.style.display = 'none';
+            if (btnsWrap) btnsWrap.style.display = 'flex';
+
+            if (!nq || nq.length < 2) {
+                suggestionsEl.innerHTML = '';
+                suggestionsEl.classList.remove('show');
                 return;
             }
-            const nq = YC.normalizeArabic(val);
-            let matchedRoom = null, matchedPerson = null;
+
+            const matches = [];
             for (const room of window.rooms || []) {
-                const person = (room.persons || []).find(p => p && YC.normalizeArabic(p).includes(nq));
-                if (person) { matchedRoom = room; matchedPerson = person; break; }
+                (room.persons || []).forEach((person, bIdx) => {
+                    if (person && YC.normalizeArabic(person).includes(nq)) {
+                        matches.push({
+                            type: 'person',
+                            name: person,
+                            room: room,
+                            bed: bIdx + 1
+                        });
+                    }
+                });
+                if (YC.normalizeArabic(room.name).includes(nq)) {
+                    matches.push({
+                        type: 'room',
+                        name: room.name,
+                        room: room
+                    });
+                }
             }
-            if (matchedRoom && matchedPerson) {
+
+            if (!matches.length) {
+                suggestionsEl.innerHTML = '';
+                suggestionsEl.classList.remove('show');
+                return;
+            }
+
+            const topMatches = matches.slice(0, 5);
+            suggestionsEl.innerHTML = topMatches.map((m, idx) => {
+                const icon = m.type === 'person' ? (m.room.gender === 'boys' ? 'bi-person-fill' : 'bi-person-fill-dress') : 'bi-door-closed-fill';
+                const color = m.room.gender === 'boys' ? '#38bdf8' : '#f87171';
+                const meta = m.type === 'person' ? `${m.room.name} (سرير #${m.bed})` : `الدور ${m.room.floor === 1 ? 'الأول' : 'الثاني'}`;
+
+                return `
+                    <div class="suggestion-item" data-idx="${idx}">
+                        <div>
+                            <i class="bi ${icon} me-1" style="color:${color};"></i>
+                            <span>${m.name}</span>
+                        </div>
+                        <span style="font-size:0.72rem; color:#94a3b8;">${meta}</span>
+                    </div>
+                `;
+            }).join('');
+
+            suggestionsEl.classList.add('show');
+
+            // عند الضغط على اختيار من القائمة
+            suggestionsEl.querySelectorAll('.suggestion-item').forEach((item, idx) => {
+                item.addEventListener('click', () => {
+                    const selected = topMatches[idx];
+                    popupInput.value = selected.name;
+                    suggestionsEl.innerHTML = '';
+                    suggestionsEl.classList.remove('show');
+                    selectAndHighlightMatch(selected.room, selected.type === 'person' ? selected.name : null);
+                });
+            });
+        }
+
+        function selectAndHighlightMatch(matchedRoom, matchedPerson) {
+            if (matchedPerson) {
                 try {
                     const profile = JSON.parse(localStorage.getItem('yc2_user_profile') || '{}');
                     profile.name = matchedPerson;
@@ -367,25 +542,75 @@
                     successBox.style.display = 'block';
                     if (welcomeTitle) welcomeTitle.textContent = `أهلاً بك يا ${matchedPerson}! 🎉`;
                     if (welcomeDesc) welcomeDesc.innerHTML = `
-                        تم تسكينك في الدور ${matchedRoom.floor === 1 ? 'الأول' : 'الثاني'}<br>
+                        تم تسكينك في الدور ${matchedRoom.floor === 1 ? 'الأول (ولاد)' : 'الثاني (بنات)'}<br>
                         غرفتك: <strong style="color:#fbbf24; font-size:1.4rem; display:block; margin-top:0.4rem;">${matchedRoom.name}</strong>
                         سريرك رقم: <strong style="color:#06b6d4;">${matchedRoom.persons.indexOf(matchedPerson) + 1}</strong>
                     `;
                     if (showRoomBtn) showRoomBtn.onclick = () => {
                         overlay.style.display = 'none';
                         sessionStorage.setItem('search_shown_accomm', 'true');
-                        if (searchInput) searchInput.value = val;
-                        applyFilters(val, true);
+                        applyFilters(matchedPerson, true);
                     };
                 }
             } else {
-                if (searchInput) searchInput.value = val;
                 overlay.style.display = 'none';
                 sessionStorage.setItem('search_shown_accomm', 'true');
-                applyFilters(val, true);
+                applyFilters(matchedRoom.name, true);
             }
         }
 
+        // 2. معالجة البحث المباشر بالتأكيد
+        function doSearch() {
+            const val = (popupInput?.value || '').trim();
+            if (!val) {
+                overlay.style.display = 'none';
+                sessionStorage.setItem('search_shown_accomm', 'true');
+                return;
+            }
+
+            const nq = YC.normalizeArabic(val);
+            let matchedRoom = null, matchedPerson = null;
+            for (const room of window.rooms || []) {
+                const person = (room.persons || []).find(p => p && YC.normalizeArabic(p).includes(nq));
+                if (person) { matchedRoom = room; matchedPerson = person; break; }
+                if (YC.normalizeArabic(room.name).includes(nq)) { matchedRoom = room; break; }
+            }
+
+            if (matchedRoom) {
+                selectAndHighlightMatch(matchedRoom, matchedPerson);
+            } else {
+                // 🛑 رسالة: اسمك مش موجود!
+                if (suggestionsEl) {
+                    suggestionsEl.innerHTML = '';
+                    suggestionsEl.classList.remove('show');
+                }
+                if (noMatchEl) {
+                    noMatchEl.style.display = 'block';
+                    noMatchEl.innerHTML = `
+                        <div class="search-no-match-box">
+                            <div style="font-size:2.2rem; margin-bottom:0.2rem;">😅</div>
+                            <div style="font-size:1.05rem; font-weight:900; color:#fb7185;">اسمك مش موجود في قائمة التسكين</div>
+                            <div style="font-size:0.78rem; color:#cbd5e1; margin-top:0.35rem; line-height:1.5;">
+                                اتأكد من كتابة الاسم صح أو ابعت للمسؤول عشان يضيفك
+                            </div>
+                            <button class="btn-secondary-app mt-3" id="accomm-retry-btn" style="padding:0.45rem 1.1rem; font-size:0.82rem;">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i> جرّب اسم تاني
+                            </button>
+                        </div>
+                    `;
+
+                    document.getElementById('accomm-retry-btn')?.addEventListener('click', () => {
+                        noMatchEl.style.display = 'none';
+                        if (popupInput) {
+                            popupInput.value = '';
+                            popupInput.focus();
+                        }
+                    });
+                }
+            }
+        }
+
+        popupInput?.addEventListener('input', renderLiveSuggestions);
         popupBtn?.addEventListener('click', doSearch);
         popupInput?.addEventListener('keypress', e => { if (e.key === 'Enter') doSearch(); });
         closeBtn?.addEventListener('click', () => {
@@ -395,7 +620,7 @@
     }
 
     /* ══════════════════════════════════════════════════
-       7. تهيئة البيانات
+       9. تهيئة البيانات
        ══════════════════════════════════════════════════ */
     function buildRoomsFromData(data) {
         const participants = data.participants || [];
